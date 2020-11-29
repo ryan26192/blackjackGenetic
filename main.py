@@ -77,11 +77,15 @@ def main():
             addCard(playerHand1)
             playerHand2 = [playerHand[1]]
             addCard(playerHand2)
+            print("pairs are wack")
+            exit()
             # splitGame(playerHand1, playerHand2, dealerHand)
         elif playerChoice == 'D':
             # double down bet
             # NOTE: not reall sure how this works tbh
             addCard(playerHand)
+            print("double downs are wack")
+            exit()
         elif playerChoice == 'S':
             # if player chooses to stay, go through dealer playing and test win state
             playerStop = True

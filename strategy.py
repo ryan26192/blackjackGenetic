@@ -18,10 +18,10 @@ class Strategy:
         elif 11 in playerHand:
             # soft hand
             nonAce = next(x for x in playerHand if x != 11)
-            return self.soft[nonAce][dealer-2]
+            return 'S' if nonAce == 10 else self.soft[nonAce][dealer-2]
         else:
             x = total(playerHand)
-            return self.hard[x][dealer-2]
+            return 'S' if x >= 21 else self.hard[x][dealer-2]
 
 
 optHard = {
