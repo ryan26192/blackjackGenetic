@@ -1,71 +1,15 @@
+# Main executable blackjack game
 import os
 import random
+from strategy import optStrat
+from common import *
 
-deck = [i for i in range(2, 15)] * 4
-playerStop = False
+deck = [i for i in range(2, 15)] * 4  # deck global var
+playerStop = False  # bool that is true when player's choice is S
 
-def total(hand):
-    total = 0
-    for card in hand:
-        if card == 11:
-            if total >= 11: total += 1
-            else: total += 11
-        else: total += card
-    return total
+# [testWin dealerHand playerHand] tests win scenarios and exits the game if
+# one is met
 
-class Strategy:
-    hard = {
-        5 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        6 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        7 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        8 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        9 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        10 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        11 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        12 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        13 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        14 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        15 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        16 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        17 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        18 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        19 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H']
-    }
-    soft = {
-        2 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        3 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        4 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        5 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        6 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        7 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        8 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        9 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H']
-        }
-    pair = {
-        2 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        3 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        4 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        5 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        6 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        7 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        8 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        9 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        10 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
-        1 : ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H']
-        }
-    def isPair(self, hand):
-        return all(x == hand[0] for x in hand)
-
-    def getMove(self, playerHand, dealer):
-        if 11 in playerHand:
-            # soft hand
-            nonAce = next(x for x in playerHand if x != 11)
-            return self.soft[nonAce][dealer-2]
-        elif self.isPair(playerHand):
-            return self.pair[playerHand[0]][dealer-2]
-        else:
-            x = total(playerHand)
-            return self.hard[x][dealer-2]
 
 def testWin(dealerHand, playerHand):
     playerTotal = total(playerHand)
@@ -80,34 +24,72 @@ def testWin(dealerHand, playerHand):
         if playerTotal > dealerTotal:
             print("player wins as you stopped with a higher value than dealer")
             exit()
-        else: 
+        else:
             print("no one wins lol")
             exit()
+# [addCard hand] adds a card to hand by popping a card off the shuffled deck
+# NOTE: cards are shuffled whenever addCard is called
 
+
+def addCard(hand):
+    random.shuffle(deck)
+    card = deck.pop()
+    card = 10 if card == 12 or card == 13 or card == 14 else card
+    hand.append(card)
+# [deal] returns a dealt deck with two random cards
 
 
 def deal():
     hand = []
     for i in range(2):
-        random.shuffle(deck)
-        card = deck.pop()
-        card = 10 if card == 12 or card == 13 or card == 14 else card
-        hand.append(card)
+        addCard(hand)
     return hand
 
+# [main] main executable function
+
+
 def main():
-    strat = Strategy()
+    global playerStop  # sets use of global var playerStop
+
+    # deal hands to dealer and player
     dealerHand = deal()
     playerHand = deal()
-    print playerHand
-    print dealerHand
-    testWin(dealerHand, playerHand)
-    playerChoice = strat.getMove(playerHand, dealerHand[0])
-    print(playerChoice)
+
+    print "player's starting hand: " + str(playerHand)
+    print "dealer's starting hand: " + str(dealerHand)
+
+    # counter var to print turns
+    i = 1
+
+    # while loop to play through game until player chooses to stop
+    while not playerStop:
+        testWin(dealerHand, playerHand)  # at each turn we check win scenarios
+        # using the beat the dealer optimal strat get a player choice
+        playerChoice = optStrat.getMove(playerHand, dealerHand[0])
+        print("player's choice turn " + str(i) + ": " + str(playerChoice))
+        if playerChoice == 'H':
+            # if player chooses to hit we add a card
+            addCard(playerHand)
+        elif playerChoice == 'P':
+            # if player chooses to split we split the cards and play through with both
+            # NOTE: don't know how this works tbh
+            playerHand1 = [playerHand[0]]
+            addCard(playerHand1)
+            playerHand2 = [playerHand[1]]
+            addCard(playerHand2)
+            # splitGame(playerHand1, playerHand2, dealerHand)
+        elif playerChoice == 'D':
+            # double down bet
+            # NOTE: not reall sure how this works tbh
+            addCard(playerHand)
+        elif playerChoice == 'S':
+            # if player chooses to stay, go through dealer playing and test win state
+            playerStop = True
+            while total(dealerHand) < 17:
+                addCard(dealerHand)
+            testWin(dealerHand, playerHand)
+        print "player's hand turn " + str(i) + ": " + str(playerHand)
+        i += 1
+
 
 main()
-
-
-
-# strat = Strategy()
-# strat.getMove(11,2,11)
