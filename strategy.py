@@ -1,6 +1,8 @@
+## Strategy file that holds a strategy class and
+## initializes a the optimal strategy from beat the dealer
 from common import *
 
-
+# creates a strategy object with the three tables
 class Strategy:
     def __init__(self, hard, soft, pair):
         self.hard = hard
