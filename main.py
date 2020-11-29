@@ -25,7 +25,7 @@ def testWin(dealerHand, playerHand):
             print("player wins as you stopped with a higher value than dealer")
             exit()
         else:
-            print("no one wins lol")
+            print("no one wins lol as dealer's total was higher than player")
             exit()
 # [addCard hand] adds a card to hand by popping a card off the shuffled deck
 # NOTE: cards are shuffled whenever addCard is called
