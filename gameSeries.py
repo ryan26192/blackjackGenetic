@@ -9,7 +9,7 @@ from common import *
 
 deck = [i for i in range(2, 15)] * 4  # deck var
 win = 2 # base amount a player gains from winning
-loss = 3 # base amount a player loses from losing
+loss = -3 # base amount a player loses from losing
 
 # [gameNet dealerHand playerHand] gameNet returns the net loss/gain of the game by
 # checking game end scenarios 
@@ -19,13 +19,17 @@ def gameNet(dealerHand, playerHand, playerStop):
     playerTotal = total(playerHand)
     dealerTotal = total(dealerHand)
     if playerTotal > 21:
+        print("player lost")
         return loss # player busts
     elif dealerTotal > 21:
+        print("player won")
         return win # dealer busts
     elif playerStop:
         if playerTotal > dealerTotal:
+            print("player won")
             return win
         else:
+            print("player lost")
             return loss
     return 0
 
@@ -39,7 +43,7 @@ def addCard(hand):
 # NOTE: resets deck and hand, then shuffles cards 
 def deal():
     hand = []
-    for i in range(2):
+    for _ in range(2):
         addCard(hand)
     return hand      
 
@@ -99,7 +103,7 @@ def playSeries(playerStrat, numGames):
         numGames: number of sequential games to play
     """
     seriesNet = 0
-    for i in range(0, numGames):
+    for _ in range(0, numGames):
         # shuffle and deal
         shuffle()
         dealerHand = deal()
