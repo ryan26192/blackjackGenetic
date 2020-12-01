@@ -1,10 +1,13 @@
 # Main executable blackjack game
-import os
-import random
-from strategy import optStrat
+from strategy import randomStrat, optStrat
 from gameSeries import playSeries
 
+NUM_STRATEGIES = 3
+NUM_GAMES_PER_STRATEGY = 100000
 def main():
-    print("net loss from 10 games: " + str(playSeries(optStrat, 10)))
+    for i in range(NUM_STRATEGIES):
+        print(str(i)+ "| net loss from " + str(NUM_GAMES_PER_STRATEGY) +" games: " + str(playSeries(randomStrat(), NUM_GAMES_PER_STRATEGY)))
 
-main()
+
+if __name__ == "__main__":
+    main()

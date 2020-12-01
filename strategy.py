@@ -1,7 +1,10 @@
 ## Strategy file that holds a strategy class and
 ## initializes a the optimal strategy from beat the dealer
 from common import *
+import random
 
+choices = ['H', 'S', 'D']
+choicesPair = ['H', 'S', 'D', 'P']
 # creates a strategy object with the three tables
 class Strategy:
     def __init__(self, hard, soft, pair):
@@ -66,3 +69,24 @@ optPair = {
 }
 
 optStrat = Strategy(optHard, optSoft, optPair)
+
+def generateRow(isPair):
+    moves = choicesPair if isPair else choices
+    return [random.choice(moves) for i in range(10)]
+
+def generateTable(start, end, isPair=False):
+    table = {}
+    for i in range(start, end):
+        table[i] = generateRow(isPair)
+    return table
+
+def randomStrat():
+    #randomly generate hard, soft and pair dictionaries
+    #return a new strat given that
+    randomHard = generateTable(5, 21)
+    # print("hard: " + str(randomHard))
+    randomSoft = generateTable(2, 10)
+    # print("soft: " + str(randomSoft))
+    randomPair = generateTable(2, 12, isPair=True)
+    # print("pair: " + str(randomPair))
+    return Strategy(randomHard, randomSoft, randomPair)

@@ -1,16 +1,14 @@
 # Game object
 import os
 import random
-from strategy import optStrat
 from common import *
 
 # GameSeries object takes in a player strategy and a number of games in the series, N, 
 # then runs that strategy against N randomly generated games
 
-deck = [i for i in range(2, 15)] * 4  # deck var
+deck = [] # deck var
 win = 2 # base amount a player gains from winning
 loss = -3 # base amount a player loses from losing
-
 # [gameNet dealerHand playerHand] gameNet returns the net loss/gain of the game by
 # checking game end scenarios 
 # returns 0 if the game is not ended, returns win if player won, returns loss if
@@ -19,22 +17,23 @@ def gameNet(dealerHand, playerHand, playerStop):
     playerTotal = total(playerHand)
     dealerTotal = total(dealerHand)
     if playerTotal > 21:
-        print("player lost")
+        # print("player lost")
         return loss # player busts
     elif dealerTotal > 21:
-        print("player won")
+        # print("player won")
         return win # dealer busts
     elif playerStop:
         if playerTotal > dealerTotal:
-            print("player won")
+            # print("player won")
             return win
         else:
-            print("player lost")
+            # print("player lost")
             return loss
     return 0
 
 # [addCard hand] adds a card to hand by popping a card off the shuffled deck
 def addCard(hand):
+    global deck
     card = deck.pop()
     card = 10 if card == 12 or card == 13 or card == 14 else card
     hand.append(card)
@@ -49,7 +48,8 @@ def deal():
 
 # [shuffle] resets & shuffles deck hand
 def shuffle():
-    deck = [i for i in range(2, 15)]
+    global deck
+    deck = [i for i in range(2, 15)] * 4
     random.shuffle(deck)
 
 # returns the net gain (or loss) from a game
@@ -57,8 +57,8 @@ def playGame(dealerHand, playerHand, playerStrat):
     playerStop = False # true if player chooses to stay
     multiplier = 1 # 2 if the player chooses to double down
 
-    print("player's starting hand: " + str(playerHand))
-    print("dealer's starting hand: " + str(dealerHand))
+    # print("player's starting hand: " + str(playerHand))
+    # print("dealer's starting hand: " + str(dealerHand))
 
     # counter var to print turns
     i = 1
@@ -68,8 +68,8 @@ def playGame(dealerHand, playerHand, playerStrat):
         net = multiplier*gameNet(dealerHand, playerHand, playerStop)
         if net != 0: return net
         # using the beat the dealer optimal strat get a player choice
-        playerChoice = optStrat.getMove(playerHand, dealerHand[0])
-        print("player's choice turn " + str(i) + ": " + str(playerChoice))
+        playerChoice = playerStrat.getMove(playerHand, dealerHand[0])
+        # print("player's choice turn " + str(i) + ": " + str(playerChoice))
         if playerChoice == 'H':
             # if player chooses to hit we add a card
             addCard(playerHand)
@@ -91,11 +91,12 @@ def playGame(dealerHand, playerHand, playerStrat):
                 addCard(dealerHand)
             net = multiplier*gameNet(dealerHand, playerHand, playerStop)
             if net != 0: return net
-        print("player's hand turn " + str(i) + ": " + str(playerHand))
+        # print("player's hand turn " + str(i) + ": " + str(playerHand))
         i += 1
 
 
 def playSeries(playerStrat, numGames):
+    global deck
     """plays a series of games and returns the net loss of those games using the input strategy
 
     Args:
