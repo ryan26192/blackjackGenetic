@@ -111,4 +111,5 @@ def playSeries(playerStrat, numGames):
         playerHand = deal()
         #play game
         seriesNet += playGame(dealerHand, playerHand, playerStrat)
+    playerStrat.setFitness(seriesNet)
     return seriesNet

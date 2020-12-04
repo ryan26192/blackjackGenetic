@@ -11,6 +11,7 @@ class Strategy:
         self.hard = hard
         self.soft = soft
         self.pair = pair
+        self.fitness = 0
 
     def isPair(self, hand):
         return all(x == hand[0] for x in hand)
@@ -26,6 +27,14 @@ class Strategy:
             x = total(playerHand)
             return 'S' if x >= 21 else self.hard[x][dealer-2]
 
+    def setFitness(self, fitness):
+        self.fitness = fitness
+
+    def __str__(self):
+        return "Strategy with fitness: " + str(self.fitness) + \
+            "\n Hard Strat: " + str(self.hard) + \
+            "\n Soft Strat: " + str(self.soft) + \
+            "\n Pair Strat: " + str(self.pair) + "\n\n"
 
 optHard = {
     5: ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
