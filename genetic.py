@@ -3,6 +3,7 @@ from strategy import randomStrat, optStrat, crossOver
 from gameSeries import playSeries
 import multiprocessing
 import random
+import time
 
 NUM_STRATEGIES = 400
 NUM_GAMES_PER_STRATEGY = 100000
@@ -20,21 +21,59 @@ def ifTerminate(strategies):
 def incrGeneration(strategy):
     strategy.incrGen()
     return strategy
+
+def runSeries(strategy):
+    stratFitness = playSeries(strategy, NUM_GAMES_PER_STRATEGY)
+    strategy.setFitness(stratFitness)
+    return strategy
+    # print(str(i)+ "| net loss from " + str(NUM_GAMES_PER_STRATEGY) +" games: " + str(strategyFitness))
+
+# def runGenerationWithProcessing(strategies, genNum):
+#     startTime = time.time()
+#     # strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
+#     i = 0
+#     jobs = []
+#     for strat in strategies:
+#         p = multiprocessing.Process(target=runSeries, args=(strat, i))
+#         i += 1
+#         jobs.append(p)
+#     for job in jobs: job.start()
+#     for job in jobs: job.join()
+#     print(str(genNum)+'|Time ran ' + str(time.time() - startTime))
+
+# def runGeneration(strategies):
+#     # strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
+#     i = 0
+#     for strat in strategies:
+#         runSeries(strat, i)
+#         print(strat.fitness)
+#         i += 1
+#     return
+
     
 def main():
     strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
     gen = 0
     print('got first set of strats')
-    # while not ifTerminate(strategies):
-    while gen < 20:
+    while not ifTerminate(strategies):
+    # while gen < 3:
+        startTime = time.time()
+        # strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
         i = 0
-        for strat in strategies:
-            strategyFitness = playSeries(strat, NUM_GAMES_PER_STRATEGY)
-            print(str(i)+ "| net loss from " + str(NUM_GAMES_PER_STRATEGY) +" games: " + str(strategyFitness))
-            i += 1
-        i = 0
+        # jobs = []
+        pool = multiprocessing.Pool(processes = NUM_STRATEGIES)
+        strategies = pool.map(runSeries, strategies)
+        # for strat in strategies:
+        #     p = multiprocessing.Process(target=runSeries, args=(strat, i, fitness))
+        #     i += 1
+        #     jobs.append(p)
+        # for job in jobs: job.start()
+        # for job in jobs: job.join()
+        print(str(gen)+'|Time ran ' + str(time.time() - startTime))
+        # runGenerationWithProcessing(strategies, gen)
+        # runGeneration(strategies)
+        # print(' '.join(map(str, strategies)))
         best = max(strategies, key = lambda strat: strat.fitness)
-        print('gen ' + str(gen) + '\n')
         print('best Strategy of gen ' + str(gen) + '\n' + str(best))
         # print(' '.join(map(str, strategies)))
         ## Tournament Selection
@@ -59,4 +98,7 @@ def main():
     _ = playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
     print('optimal Strategy\n' + str(optStrat))
 
-main()
+if __name__ == '__main__':
+    main()
+    # print('Processing: ' + str(timeit.timeit(runGenerationWithProcessing)))
+    # print('normal: ' + str(timeit.timeit(runGeneration)))

@@ -16,7 +16,7 @@ class Strategy:
         self.numGenerations = 0
 
     def isPair(self, hand):
-        return len(hand) == 2 and hand[0] == hand[1]
+        return hand[0] == hand[1]
 
     def getMove(self, playerHand, dealer):
         if self.isPair(playerHand):
@@ -40,6 +40,7 @@ class Strategy:
             "\n Hard Strat: " + str(self.hard) + \
             "\n Soft Strat: " + str(self.soft) + \
             "\n Pair Strat: " + str(self.pair) + \
+            "\n Number of Generations: " + str(self.numGenerations) + \
             "\n Came from: " + self.name + "\n\n"
 
 optHard = {
