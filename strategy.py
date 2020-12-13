@@ -7,14 +7,16 @@ choices = ['H', 'S', 'D']
 choicesPair = ['H', 'S', 'D', 'P']
 # creates a strategy object with the three tables
 class Strategy:
-    def __init__(self, hard, soft, pair):
+    def __init__(self, hard, soft, pair, name='Random'):
         self.hard = hard
         self.soft = soft
         self.pair = pair
         self.fitness = 0
+        self.name = name
+        self.numGenerations = 0
 
     def isPair(self, hand):
-        return all(x == hand[0] for x in hand)
+        return len(hand) == 2 and hand[0] == hand[1]
 
     def getMove(self, playerHand, dealer):
         if self.isPair(playerHand):
@@ -30,11 +32,15 @@ class Strategy:
     def setFitness(self, fitness):
         self.fitness = fitness
 
+    def incrGen(self):
+        self.numGenerations += 1
+        
     def __str__(self):
         return "Strategy with fitness: " + str(self.fitness) + \
             "\n Hard Strat: " + str(self.hard) + \
             "\n Soft Strat: " + str(self.soft) + \
-            "\n Pair Strat: " + str(self.pair) + "\n\n"
+            "\n Pair Strat: " + str(self.pair) + \
+            "\n Came from: " + self.name + "\n\n"
 
 optHard = {
     5: ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
@@ -83,12 +89,21 @@ def generateRow(isPair):
     moves = choicesPair if isPair else choices
     return [random.choice(moves) for i in range(10)]
 
+def generateRowCrossOver(p1, p2, isPair):
+    return [random.choice([p1[i],p2[i]]) for i in range(10)]
+
 def generateTable(start, end, isPair=False):
     table = {}
     for i in range(start, end):
         table[i] = generateRow(isPair)
     return table
 
+def generateTableCrossOver(start, end, p1, p2, isPair=False):
+    table = {}
+    for i in range(start, end):
+        table[i] = generateRowCrossOver(p1[i], p2[i], isPair)
+    return table
+    
 def randomStrat():
     #randomly generate hard, soft and pair dictionaries
     #return a new strat given that
@@ -99,3 +114,12 @@ def randomStrat():
     randomPair = generateTable(2, 12, isPair=True)
     # print("pair: " + str(randomPair))
     return Strategy(randomHard, randomSoft, randomPair)
+
+def crossOver(parent1, parent2, worstFitness):
+    # p1Fitness = parent1.fitness + worstFitness
+    # p2Fitness = parent2.fitness + worstFitness
+    # choice = random.choices([0,1], weights=(p1Fitness / p2Fitness, 1), k = 1)
+    crossHard = generateTableCrossOver(5,21, parent1.hard, parent2.hard)
+    crossSoft = generateTableCrossOver(2,10, parent1.soft, parent2.soft)
+    crossPair = generateTableCrossOver(2, 12, parent1.pair, parent2.pair)
+    return Strategy(crossHard, crossSoft, crossPair, 'crossOver')
