@@ -2,18 +2,20 @@
 ## initializes a the optimal strategy from beat the dealer
 from common import *
 import random
+import json
+from marshmallow import Schema, fields
 
 choices = ['H', 'S', 'D']
 choicesPair = ['H', 'S', 'D', 'P']
 # creates a strategy object with the three tables
 class Strategy:
-    def __init__(self, hard, soft, pair, name='Random'):
+    def __init__(self, hard, soft, pair, name='Random', fitness=0, numGenerations=0):
         self.hard = hard
         self.soft = soft
         self.pair = pair
-        self.fitness = 0
+        self.fitness = fitness
         self.name = name
-        self.numGenerations = 0
+        self.numGenerations = numGenerations
 
     def isPair(self, hand):
         return hand[0] == hand[1]
@@ -42,6 +44,14 @@ class Strategy:
             "\n Pair Strat: " + str(self.pair) + \
             "\n Number of Generations: " + str(self.numGenerations) + \
             "\n Came from: " + self.name + "\n\n"
+
+class ObjectSchema(Schema):
+    fitness = fields.Str()
+    numGenerations = fields.Str()
+    name = fields.Str()
+    hard = fields.Dict()
+    soft = fields.Dict()
+    pair = fields.Dict()
 
 optHard = {
     5: ['H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H', 'H'],
@@ -124,3 +134,21 @@ def crossOver(parent1, parent2, worstFitness):
     crossSoft = generateTableCrossOver(2,10, parent1.soft, parent2.soft)
     crossPair = generateTableCrossOver(2, 12, parent1.pair, parent2.pair)
     return Strategy(crossHard, crossSoft, crossPair, 'crossOver')
+
+def fixDict(dict):
+    return {int(k): v for k, v in dict.items()}
+
+def convertToStrategy(s):
+    strat = Strategy(
+        fixDict(s['hard']),
+        fixDict(s['soft']), 
+        fixDict(s['pair']),
+        name=s['name'],
+        fitness=int(s['fitness']),
+        numGenerations=int(s['numGenerations']))
+    return strat
+
+def getStrategiesFromGeneration(gen):
+    f = open('generations/gen'+str(gen)+'.json',)
+    data = json.load(f)
+    return [convertToStrategy(jsonStrat) for jsonStrat in data]

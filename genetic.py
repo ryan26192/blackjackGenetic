@@ -1,14 +1,16 @@
 # Main executable blackjack game
-from strategy import randomStrat, optStrat, crossOver
+from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration
 from gameSeries import playSeries
 import multiprocessing
 import random
 import time
+import json
 
 NUM_STRATEGIES = 400
 NUM_GAMES_PER_STRATEGY = 100000
 TOURNAMENT_SIZE = 2
-# print(round(NUM_STRATEGIES/2, ndigits=None ))
+GEN_START = 0
+
 def tournamentSelect(tournamentSize, strategySet):
     tourneyEntrants = random.sample(strategySet, k=tournamentSize)
     parent = max(tourneyEntrants, key = lambda strat: strat.fitness)
@@ -25,56 +27,34 @@ def incrGeneration(strategy):
 def runSeries(strategy):
     stratFitness = playSeries(strategy, NUM_GAMES_PER_STRATEGY)
     strategy.setFitness(stratFitness)
-    return strategy
     # print(str(i)+ "| net loss from " + str(NUM_GAMES_PER_STRATEGY) +" games: " + str(strategyFitness))
+    return strategy
 
-# def runGenerationWithProcessing(strategies, genNum):
-#     startTime = time.time()
-#     # strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
-#     i = 0
-#     jobs = []
-#     for strat in strategies:
-#         p = multiprocessing.Process(target=runSeries, args=(strat, i))
-#         i += 1
-#         jobs.append(p)
-#     for job in jobs: job.start()
-#     for job in jobs: job.join()
-#     print(str(genNum)+'|Time ran ' + str(time.time() - startTime))
+def genToJSON(gen, strategies):
+    objectSchema = ObjectSchema()
+    data = objectSchema.dump(strategies, many=True)
+    with open('generations/gen' + str(gen)+'.json', 'w') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+    return
 
-# def runGeneration(strategies):
-#     # strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
-#     i = 0
-#     for strat in strategies:
-#         runSeries(strat, i)
-#         print(strat.fitness)
-#         i += 1
-#     return
-
-    
 def main():
-    strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
-    gen = 0
+    if GEN_START == 0:
+        strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
+        gen = 0
+    else: 
+        strategies = getStrategiesFromGeneration(GEN_START)
+        gen = GEN_START
     print('got first set of strats')
     while not ifTerminate(strategies):
-    # while gen < 3:
-        startTime = time.time()
-        # strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
-        i = 0
-        # jobs = []
-        pool = multiprocessing.Pool(processes = NUM_STRATEGIES)
-        strategies = pool.map(runSeries, strategies)
-        # for strat in strategies:
-        #     p = multiprocessing.Process(target=runSeries, args=(strat, i, fitness))
-        #     i += 1
-        #     jobs.append(p)
-        # for job in jobs: job.start()
-        # for job in jobs: job.join()
-        print(str(gen)+'|Time ran ' + str(time.time() - startTime))
-        # runGenerationWithProcessing(strategies, gen)
-        # runGeneration(strategies)
-        # print(' '.join(map(str, strategies)))
-        best = max(strategies, key = lambda strat: strat.fitness)
-        print('best Strategy of gen ' + str(gen) + '\n' + str(best))
+    # while gen <= 2:
+        if not(gen > 0 and gen == GEN_START):
+            startTime = time.time()
+            pool = multiprocessing.Pool(processes = NUM_STRATEGIES)
+            strategies = pool.map(runSeries, strategies)
+            genToJSON(gen, strategies)
+            print(str(gen)+'|Time ran ' + str(time.time() - startTime))
+            best = max(strategies, key = lambda strat: strat.fitness)
+            print('best Strategy of gen ' + str(gen) + '\n' + str(best))
         # print(' '.join(map(str, strategies)))
         ## Tournament Selection
         worstStrategy = min(strategies, key = lambda strat: strat.fitness)
@@ -86,11 +66,9 @@ def main():
         children = set()
         for i in range(0, len(parents), 2):
             children.add(crossOver(parents[i], parents[i+1], worstStrategy.fitness))
-        # print("children")
         # print(' '.join(map(str, children)))
         strategies.sort(key = lambda strat: strat.fitness)
         strategies = [incrGeneration(strat) if children == set() else children.pop() for strat in strategies]
-        # print('next generation')
         gen += 1
     bestStrat = max(strategies, key = lambda strat: strat.fitness)
     _ = playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
@@ -100,5 +78,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # print('Processing: ' + str(timeit.timeit(runGenerationWithProcessing)))
-    # print('normal: ' + str(timeit.timeit(runGeneration)))
