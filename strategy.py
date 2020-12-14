@@ -123,6 +123,7 @@ def randomStrat():
     randomPair = generateTable(2, 12, isPair=True)
     return Strategy(randomHard, randomSoft, randomPair)
 
+## takes two parents and crossovers them to create a child
 def crossOver(parent1, parent2, worstFitness):
     # p1Fitness = parent1.fitness + worstFitness
     # p2Fitness = parent2.fitness + worstFitness
@@ -132,9 +133,11 @@ def crossOver(parent1, parent2, worstFitness):
     crossPair = generateTableCrossOver(2, 12, parent1.pair, parent2.pair)
     return Strategy(crossHard, crossSoft, crossPair, 'crossOver')
 
+# fixes dictionary to be right format for a strategy
 def fixDict(dict):
     return {int(k): v for k, v in dict.items()}
 
+## converts a dict to a strategy
 def convertToStrategy(s):
     strat = Strategy(
         fixDict(s['hard']),
@@ -145,6 +148,7 @@ def convertToStrategy(s):
         numGenerations=int(s['numGenerations']))
     return strat
 
+## Returns a list of strategies from a JSON
 def getStrategiesFromGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
     data = json.load(f) if gen <= 91 else json.load(f)['strategies']
