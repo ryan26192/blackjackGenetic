@@ -119,11 +119,8 @@ def randomStrat():
     #randomly generate hard, soft and pair dictionaries
     #return a new strat given that
     randomHard = generateTable(5, 21)
-    # print("hard: " + str(randomHard))
     randomSoft = generateTable(2, 10)
-    # print("soft: " + str(randomSoft))
     randomPair = generateTable(2, 12, isPair=True)
-    # print("pair: " + str(randomPair))
     return Strategy(randomHard, randomSoft, randomPair)
 
 def crossOver(parent1, parent2, worstFitness):
@@ -150,5 +147,5 @@ def convertToStrategy(s):
 
 def getStrategiesFromGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
-    data = json.load(f)
+    data = json.load(f) if gen <= 91 else json.load(f)['strategies']
     return [convertToStrategy(jsonStrat) for jsonStrat in data]
