@@ -53,10 +53,10 @@ def shuffle():
     random.shuffle(deck)
 
 # returns the net gain (or loss) from a game
-def playGame(dealerHand, playerHand, playerStrat):
+def playGame(dealerHand, playerHand, playerStrat, isPair=False):
+    global deck
     playerStop = False # true if player chooses to stay
     multiplier = 1 # 2 if the player chooses to double down
-
     # print("player's starting hand: " + str(playerHand))
     # print("dealer's starting hand: " + str(dealerHand))
 
@@ -66,6 +66,7 @@ def playGame(dealerHand, playerHand, playerStrat):
     # while loop to play through game until player chooses to stop
     while not playerStop:
         net = multiplier*gameNet(dealerHand, playerHand, playerStop)
+        if len(deck) <= 2: return multiplier*gameNet(dealerHand, playerHand, True) 
         if net != 0: return net
         # using the beat the dealer optimal strat get a player choice
         playerChoice = playerStrat.getMove(playerHand, dealerHand[0])
@@ -75,11 +76,12 @@ def playGame(dealerHand, playerHand, playerStrat):
             addCard(playerHand)
         elif playerChoice == 'P':
             # if player chooses to split we split the cards and play through with both
+            # print('split has happened')
             playerHand1 = [playerHand[0]]
             addCard(playerHand1)
             playerHand2 = [playerHand[1]]
             addCard(playerHand2)
-            return playGame(dealerHand, playerHand1, playerStrat) + playGame(dealerHand, playerHand2, playerStrat)
+            return playGame(dealerHand, playerHand1, playerStrat, isPair=True) + playGame(dealerHand, playerHand2, playerStrat, isPair=True)
         elif playerChoice == 'D':
             # double down bet
             addCard(playerHand)
@@ -93,7 +95,6 @@ def playGame(dealerHand, playerHand, playerStrat):
             if net != 0: return net
         # print("player's hand turn " + str(i) + ": " + str(playerHand))
         i += 1
-
 
 def playSeries(playerStrat, numGames):
     global deck
@@ -111,4 +112,5 @@ def playSeries(playerStrat, numGames):
         playerHand = deal()
         #play game
         seriesNet += playGame(dealerHand, playerHand, playerStrat)
+    playerStrat.setFitness(seriesNet)
     return seriesNet
