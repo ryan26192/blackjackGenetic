@@ -19,22 +19,23 @@ class Strategy:
 
     def isPair(self, hand):
         if len(hand) == 2 and hand[0] == hand[1]: 
-            print(hand)
             return True
         else:
             return False
         
 
-    def getMove(self, playerHand, dealer):
-        if self.isPair(playerHand):
+    def getMove(self, playerHand, dealer, pairAllowed = True):
+        if self.isPair(playerHand) and pairAllowed:
             return self.pair[playerHand[0]][dealer-2]
-        elif 11 in playerHand:
-            # soft hand
-            nonAce = next(x for x in playerHand if x != 11)
-            return 'S' if nonAce == 10 else self.soft[nonAce][dealer-2]
-        else:
-            x = total(playerHand)
-            return 'S' if x >= 21 else self.hard[x][dealer-2]
+        if playerHand.count(11) == 1:
+            # soft hand (ONLY IF THERE IS EXACTLY ONE 11)
+            nonAceSum = sum(x for x in playerHand if x != 11)
+            if nonAceSum < 10:
+                return 'S' if nonAceSum == 10 else self.soft[nonAceSum][dealer-2]
+        # hard hand (could have an ace, but the ace has been forced to 1)
+        x = total(playerHand)
+        if x < 5: return 'H' #only comes up because in case of 2,2 hand with pairAllowed = False
+        return 'S' if x >= 21 else self.hard[x][dealer-2]
 
     def setFitness(self, fitness):
         self.fitness = fitness
@@ -163,3 +164,14 @@ def bestStrategyFromGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
     data = json.load(f)['best']
     return convertToStrategy(data)
+
+def printClean(s):
+    print("HARD:")
+    for i in range(5, 21):
+        print(s.hard[i])
+    print("SOFT:")    
+    for i in range(2, 10):
+        print(s.soft[i])
+    print("PAIR:")
+    for i in range(2, 12):
+        print(s.pair[i])

@@ -1,5 +1,5 @@
 # Main executable blackjack game
-from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, bestStrategyFromGeneration
+from strategy import randomStrat, printClean, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, bestStrategyFromGeneration
 from gameSeries import playSeries
 import multiprocessing
 import random
@@ -121,5 +121,8 @@ if __name__ == '__main__':
     playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
     playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
     print('random Strategy from my GA\n' + str(randomStrat) +'\n')
+    printClean(randomStrat)
     print('best Strategy from my GA\n' + str(bestStrat) +'\n')
+    printClean(bestStrat)
     print('optimal Strategy\n' + str(optStrat))
+    printClean(optStrat)
