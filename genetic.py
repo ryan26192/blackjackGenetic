@@ -1,5 +1,5 @@
 # Main executable blackjack game
-from strategy import randomStrat, printClean, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, bestStrategyFromGeneration
+from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, bestStrategyFromGeneration
 from gameSeries import playSeries
 import multiprocessing
 import random
@@ -9,7 +9,7 @@ import json
 NUM_STRATEGIES = 400 #Number of strategies each gen to run the genetic algorithm
 NUM_GAMES_PER_STRATEGY = 500000 # Number of games each strategy plays through to get fitness score
 TOURNAMENT_SIZE = 2 # Tournament Size for Tournament Select
-GEN_START = 143 # If GEN_START = 0, starts GA from scratch, or you can start from a specific saved generation
+GEN_START = 0 # If GEN_START = 0, starts GA from scratch, or you can start from a specific saved generation
 
 
 #[tournamentSelect tournamentSize strategySet] returns the winner of a tournament through
@@ -114,15 +114,15 @@ def main():
     print('optimal Strategy\n' + str(optStrat))
 
 if __name__ == '__main__':
-    # main()
-    bestStrat = bestStrategyFromGeneration(154)
-    randomStrat = randomStrat()
-    playSeries(randomStrat, NUM_GAMES_PER_STRATEGY)
-    playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
-    playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
-    print('random Strategy from my GA\n' + str(randomStrat) +'\n')
-    printClean(randomStrat)
-    print('best Strategy from my GA\n' + str(bestStrat) +'\n')
-    printClean(bestStrat)
-    print('optimal Strategy\n' + str(optStrat))
-    printClean(optStrat)
+    main()
+    # bestStrat = bestStrategyFromGeneration(154)
+    # randomStrat = randomStrat()
+    # playSeries(randomStrat, NUM_GAMES_PER_STRATEGY)
+    # playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
+    # playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
+    # print('random Strategy from my GA\n' + str(randomStrat) +'\n')
+    # # printClean(randomStrat)
+    # print('best Strategy from my GA\n' + str(bestStrat) +'\n')
+    # # printClean(bestStrat)
+    # print('optimal Strategy\n' + str(optStrat))
+    # printClean(optStrat)

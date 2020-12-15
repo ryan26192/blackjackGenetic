@@ -44,12 +44,18 @@ class Strategy:
         self.numGenerations += 1
         
     def __str__(self):
-        return "Strategy with fitness: " + str(self.fitness) + \
-            "\n Hard Strat: " + str(self.hard) + \
-            "\n Soft Strat: " + str(self.soft) + \
-            "\n Pair Strat: " + str(self.pair) + \
-            "\n Number of Generations: " + str(self.numGenerations) + \
-            "\n Came from: " + self.name + "\n\n"
+        hardStr = ''
+        for i in range(5,21): hardStr += str(i) + ': ' + str(self.hard[i]) + '\n'
+        softStr = ''
+        for i in range(2,10): softStr += str(i) + ': ' + str(self.soft[i]) + '\n'
+        pairStr = ''
+        for i in range(2,12): pairStr += str(i) + ': ' + str(self.pair[i]) + '\n'
+        return "Strategy with Fitness: " + str(self.fitness) + \
+               "\nNumber of Generations: " + str(self.numGenerations) + \
+               "\nCame from: " + self.name + \
+               "\nHard Strat: \n" + hardStr + \
+               "\nSoft Strat: \n" + softStr + \
+               "\nPair Strat: \n" + pairStr + "\n\n"
 
 class ObjectSchema(Schema):
     fitness = fields.Str()
@@ -164,14 +170,3 @@ def bestStrategyFromGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
     data = json.load(f)['best']
     return convertToStrategy(data)
-
-def printClean(s):
-    print("HARD:")
-    for i in range(5, 21):
-        print(s.hard[i])
-    print("SOFT:")    
-    for i in range(2, 10):
-        print(s.soft[i])
-    print("PAIR:")
-    for i in range(2, 12):
-        print(s.pair[i])
