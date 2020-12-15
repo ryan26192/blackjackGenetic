@@ -153,3 +153,8 @@ def getStrategiesFromGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
     data = json.load(f) if gen <= 91 else json.load(f)['strategies']
     return [convertToStrategy(jsonStrat) for jsonStrat in data]
+
+def bestStrategyFromGeneration(gen):
+    f = open('generations/gen'+str(gen)+'.json',)
+    data = json.load(f)['best']
+    return convertToStrategy(data)

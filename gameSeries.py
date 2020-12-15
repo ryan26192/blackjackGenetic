@@ -7,8 +7,8 @@ from common import *
 # then runs that strategy against N randomly generated games
 
 deck = [] # deck var
-win = 2 # base amount a player gains from winning
-loss = -3 # base amount a player loses from losing
+win = 7.50 # base amount a player gains from winning, bet is 2 dollars
+loss = -5 # base amount a player loses from losing, bet is 2 dollars
 # [gameNet dealerHand playerHand] gameNet returns the net loss/gain of the game by
 # checking game end scenarios 
 # returns 0 if the game is not ended, returns win if player won, returns loss if
@@ -53,7 +53,7 @@ def shuffle():
     random.shuffle(deck)
 
 # returns the net gain (or loss) from a game
-def playGame(dealerHand, playerHand, playerStrat, isPair=False):
+def playGame(dealerHand, playerHand, playerStrat):
     global deck
     playerStop = False # true if player chooses to stay
     multiplier = 1 # 2 if the player chooses to double down
@@ -66,9 +66,11 @@ def playGame(dealerHand, playerHand, playerStrat, isPair=False):
     # while loop to play through game until player chooses to stop
     while not playerStop:
         net = multiplier*gameNet(dealerHand, playerHand, playerStop)
-        if len(deck) <= 2: return multiplier*gameNet(dealerHand, playerHand, True) 
+        if len(deck) <= 2:
+            print('umm')
+            return multiplier*gameNet(dealerHand, playerHand, True) 
         if net != 0: return net
-        # using the beat the dealer optimal strat get a player choice
+        # get a choice from the playerStrat
         playerChoice = playerStrat.getMove(playerHand, dealerHand[0])
         # print("player's choice turn " + str(i) + ": " + str(playerChoice))
         if playerChoice == 'H':
@@ -81,18 +83,23 @@ def playGame(dealerHand, playerHand, playerStrat, isPair=False):
             addCard(playerHand1)
             playerHand2 = [playerHand[1]]
             addCard(playerHand2)
-            return playGame(dealerHand, playerHand1, playerStrat, isPair=True) + playGame(dealerHand, playerHand2, playerStrat, isPair=True)
+            return playGame(dealerHand, playerHand1, playerStrat) + playGame(dealerHand, playerHand2, playerStrat)
         elif playerChoice == 'D':
             # double down bet
             addCard(playerHand)
             multiplier = 2
+            playerStop=True
+            while total(dealerHand) < 17:
+                addCard(dealerHand)
+            net = multiplier*gameNet(dealerHand, playerHand, playerStop)
+            return net
         elif playerChoice == 'S':
             # if player chooses to stay, go through dealer playing and test win state
             playerStop = True
             while total(dealerHand) < 17:
                 addCard(dealerHand)
             net = multiplier*gameNet(dealerHand, playerHand, playerStop)
-            if net != 0: return net
+            return net
         # print("player's hand turn " + str(i) + ": " + str(playerHand))
         i += 1
 
