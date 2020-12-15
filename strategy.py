@@ -18,7 +18,12 @@ class Strategy:
         self.numGenerations = numGenerations
 
     def isPair(self, hand):
-        return hand[0] == hand[1]
+        if len(hand) == 2 and hand[0] == hand[1]: 
+            print(hand)
+            return True
+        else:
+            return False
+        
 
     def getMove(self, playerHand, dealer):
         if self.isPair(playerHand):

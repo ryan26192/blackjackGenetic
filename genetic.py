@@ -116,7 +116,10 @@ def main():
 if __name__ == '__main__':
     # main()
     bestStrat = bestStrategyFromGeneration(154)
+    randomStrat = randomStrat()
+    playSeries(randomStrat, NUM_GAMES_PER_STRATEGY)
     playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
     playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
+    print('random Strategy from my GA\n' + str(randomStrat) +'\n')
     print('best Strategy from my GA\n' + str(bestStrat) +'\n')
     print('optimal Strategy\n' + str(optStrat))
