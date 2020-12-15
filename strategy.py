@@ -42,6 +42,11 @@ class Strategy:
 
     def incrGen(self):
         self.numGenerations += 1
+    
+    def __eq__(self, strategy):
+        if not isinstance(strategy, Strategy):
+            return False
+        return self.hard == strategy.hard and self.soft == strategy.soft and self.pair == strategy.pair
         
     def __str__(self):
         hardStr = ''
@@ -51,7 +56,6 @@ class Strategy:
         pairStr = ''
         for i in range(2,12): pairStr += str(i) + ': ' + str(self.pair[i]) + '\n'
         return "Strategy with Fitness: " + str(self.fitness) + \
-               "\nNumber of Generations: " + str(self.numGenerations) + \
                "\nCame from: " + self.name + \
                "\nHard Strat: \n" + hardStr + \
                "\nSoft Strat: \n" + softStr + \
@@ -136,7 +140,7 @@ def randomStrat():
     return Strategy(randomHard, randomSoft, randomPair)
 
 ## takes two parents and crossovers them to create a child
-def crossOver(parent1, parent2, worstFitness):
+def crossOver(parent1, parent2):
     # p1Fitness = parent1.fitness + worstFitness
     # p2Fitness = parent2.fitness + worstFitness
     # choice = random.choices([0,1], weights=(p1Fitness / p2Fitness, 1), k = 1)
@@ -156,17 +160,22 @@ def convertToStrategy(s):
         fixDict(s['soft']), 
         fixDict(s['pair']),
         name=s['name'],
-        fitness=int(s['fitness']),
+        fitness=float(s['fitness']),
         numGenerations=int(s['numGenerations']))
     return strat
 
 ## Returns a list of strategies from a JSON
 def getStrategiesFromGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
-    data = json.load(f) if gen <= 91 else json.load(f)['strategies']
+    data = json.load(f)['strategies']
     return [convertToStrategy(jsonStrat) for jsonStrat in data]
 
 def bestStrategyFromGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
+    data = json.load(f)['best']
+    return convertToStrategy(data)
+
+def testStrategy():
+    f = open('testStrategyGeneration.json')
     data = json.load(f)['best']
     return convertToStrategy(data)
