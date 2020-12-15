@@ -18,18 +18,24 @@ class Strategy:
         self.numGenerations = numGenerations
 
     def isPair(self, hand):
-        return hand[0] == hand[1]
-
-    def getMove(self, playerHand, dealer):
-        if self.isPair(playerHand):
-            return self.pair[playerHand[0]][dealer-2]
-        elif 11 in playerHand:
-            # soft hand
-            nonAce = next(x for x in playerHand if x != 11)
-            return 'S' if nonAce == 10 else self.soft[nonAce][dealer-2]
+        if len(hand) == 2 and hand[0] == hand[1]: 
+            return True
         else:
-            x = total(playerHand)
-            return 'S' if x >= 21 else self.hard[x][dealer-2]
+            return False
+        
+
+    def getMove(self, playerHand, dealer, pairAllowed = True):
+        if self.isPair(playerHand) and pairAllowed:
+            return self.pair[playerHand[0]][dealer-2]
+        if playerHand.count(11) == 1:
+            # soft hand (ONLY IF THERE IS EXACTLY ONE 11)
+            nonAceSum = sum(x for x in playerHand if x != 11)
+            if nonAceSum < 10:
+                return 'S' if nonAceSum == 10 else self.soft[nonAceSum][dealer-2]
+        # hard hand (could have an ace, but the ace has been forced to 1)
+        x = total(playerHand)
+        if x < 5: return 'H' #only comes up because in case of 2,2 hand with pairAllowed = False
+        return 'S' if x >= 21 else self.hard[x][dealer-2]
 
     def setFitness(self, fitness):
         self.fitness = fitness
@@ -38,12 +44,18 @@ class Strategy:
         self.numGenerations += 1
         
     def __str__(self):
-        return "Strategy with fitness: " + str(self.fitness) + \
-            "\n Hard Strat: " + str(self.hard) + \
-            "\n Soft Strat: " + str(self.soft) + \
-            "\n Pair Strat: " + str(self.pair) + \
-            "\n Number of Generations: " + str(self.numGenerations) + \
-            "\n Came from: " + self.name + "\n\n"
+        hardStr = ''
+        for i in range(5,21): hardStr += str(i) + ': ' + str(self.hard[i]) + '\n'
+        softStr = ''
+        for i in range(2,10): softStr += str(i) + ': ' + str(self.soft[i]) + '\n'
+        pairStr = ''
+        for i in range(2,12): pairStr += str(i) + ': ' + str(self.pair[i]) + '\n'
+        return "Strategy with Fitness: " + str(self.fitness) + \
+               "\nNumber of Generations: " + str(self.numGenerations) + \
+               "\nCame from: " + self.name + \
+               "\nHard Strat: \n" + hardStr + \
+               "\nSoft Strat: \n" + softStr + \
+               "\nPair Strat: \n" + pairStr + "\n\n"
 
 class ObjectSchema(Schema):
     fitness = fields.Str()
@@ -123,6 +135,7 @@ def randomStrat():
     randomPair = generateTable(2, 12, isPair=True)
     return Strategy(randomHard, randomSoft, randomPair)
 
+## takes two parents and crossovers them to create a child
 def crossOver(parent1, parent2, worstFitness):
     # p1Fitness = parent1.fitness + worstFitness
     # p2Fitness = parent2.fitness + worstFitness
@@ -132,9 +145,11 @@ def crossOver(parent1, parent2, worstFitness):
     crossPair = generateTableCrossOver(2, 12, parent1.pair, parent2.pair)
     return Strategy(crossHard, crossSoft, crossPair, 'crossOver')
 
+# fixes dictionary to be right format for a strategy
 def fixDict(dict):
     return {int(k): v for k, v in dict.items()}
 
+## converts a dict to a strategy
 def convertToStrategy(s):
     strat = Strategy(
         fixDict(s['hard']),
@@ -145,6 +160,7 @@ def convertToStrategy(s):
         numGenerations=int(s['numGenerations']))
     return strat
 
+## Returns a list of strategies from a JSON
 def getStrategiesFromGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
     data = json.load(f) if gen <= 91 else json.load(f)['strategies']
@@ -160,3 +176,7 @@ def printClean(s):
     print("PAIR:")
     for i in range(2, 12):
         print(s.pair[i])
+def bestStrategyFromGeneration(gen):
+    f = open('generations/gen'+str(gen)+'.json',)
+    data = json.load(f)['best']
+    return convertToStrategy(data)

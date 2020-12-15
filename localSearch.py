@@ -18,38 +18,14 @@ def search():
         print("local search [Pair] - iteration:" + str(iteration))
         # Iterate through all neighbor strategies
         # A) Check hard table
-        perf = playSeries(strat, numGames)
-        print("perf" + str(perf))
         if(test_hard(strat, perf)):
             continue
-        # if we reach this line, that means no improvements were found in any hard neighbors
-        break
-    iteration = 0
-    print("********************* HARD done")
-    while True:
-        iteration += 1 
-        if(iteration > maxIter):
-            return strat
-        print("local search [Pair] - iteration:" + str(iteration))
-        # Iterate through all neighbor strategies
+
         # B) Check soft table
-        perf = playSeries(strat, numGames)
-        print("perf" + str(perf))
         if(test_soft(strat, perf)):
             continue
-        # if we reach this line, that means no improvements were found in any hard neighbors
-        break
-    iteration = 0
-    print("********************* SOFT done")
-    while True:
-        iteration += 1 
-        if(iteration > maxIter):
-            return strat
-        print("local search [Pair] - iteration:" + str(iteration))
-        # Iterate through all neighbor strategies
+
         # C) Check pair table
-        perf = playSeries(strat, numGames)
-        print("perf" + str(perf))
         if(test_pair(strat, perf)):
             continue
         
@@ -72,7 +48,7 @@ def test_hard(strat, perf):
 
             # compare performance of new strat to old and replace if better
             newPerf = playSeries(strat, numGames)
-            if(newPerf < perf):
+            if(newPerf > perf):
                 return True
             else:
                 strat.hard[p][d] = temp #revert change and continue
@@ -94,7 +70,7 @@ def test_soft(strat, perf):
 
             # compare performance of new strat to old and replace if better
             newPerf = playSeries(strat, numGames)
-            if(newPerf < perf):
+            if(newPerf > perf):
                 return True
             else:
                 strat.soft[p][d] = temp #revert change and continue
@@ -113,13 +89,13 @@ def test_pair(strat, perf):
                 strat.pair[p][d] = 'H'
                 # compare performance of new strat to old and replace if better
                 newPerf = playSeries(strat, numGames)
-                if(newPerf < perf):
+                if(newPerf > perf):
                     return True
 
                 strat.pair[p][d] = 'H'
                 # compare performance of new strat to old and replace if better
                 newPerf = playSeries(strat, numGames)
-                if(newPerf < perf):
+                if(newPerf > perf):
                     return True
 
             # If current cell is hit, test double down
@@ -127,8 +103,8 @@ def test_pair(strat, perf):
                 strat.pair[p][d] = 'D'
                 # compare performance of new strat to old and replace if better
                 newPerf = playSeries(strat, numGames)
-                if(newPerf < perf):
+                if(newPerf > perf):
                     return True
 
-            strat.pair[p][d] = temp #revert change and continue
+            strat.soft[p][d] = temp #revert change and continue
     return False
