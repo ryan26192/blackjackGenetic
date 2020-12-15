@@ -149,3 +149,14 @@ def getStrategiesFromGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
     data = json.load(f) if gen <= 91 else json.load(f)['strategies']
     return [convertToStrategy(jsonStrat) for jsonStrat in data]
+
+def printClean(s):
+    print("HARD:")
+    for i in range(5, 21):
+        print(s.hard[i])
+    print("SOFT:")    
+    for i in range(2, 10):
+        print(s.soft[i])
+    print("PAIR:")
+    for i in range(2, 12):
+        print(s.pair[i])
