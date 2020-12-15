@@ -66,9 +66,6 @@ def playGame(dealerHand, playerHand, playerStrat):
     # while loop to play through game until player chooses to stop
     while not playerStop:
         net = multiplier*gameNet(dealerHand, playerHand, playerStop)
-        if len(deck) <= 2:
-            print('umm')
-            return multiplier*gameNet(dealerHand, playerHand, True) 
         if net != 0: return net
         # get a choice from the playerStrat
         playerChoice = playerStrat.getMove(playerHand, dealerHand[0])
