@@ -1,5 +1,5 @@
 # Main executable blackjack game
-from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, bestStrategyFromGeneration
+from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, testStrategy
 from gameSeries import playSeries
 import multiprocessing
 import random
@@ -7,9 +7,9 @@ import time
 import json
 
 NUM_STRATEGIES = 400 #Number of strategies each gen to run the genetic algorithm
-NUM_GAMES_PER_STRATEGY = 500000 # Number of games each strategy plays through to get fitness score
+NUM_GAMES_PER_STRATEGY = 100000 # Number of games each strategy plays through to get fitness score
 TOURNAMENT_SIZE = 2 # Tournament Size for Tournament Select
-GEN_START = 0 # If GEN_START = 0, starts GA from scratch, or you can start from a specific saved generation
+GEN_START = 16 # If GEN_START = 0, starts GA from scratch, or you can start from a specific saved generation
 
 
 #[tournamentSelect tournamentSize strategySet] returns the winner of a tournament through
@@ -18,12 +18,6 @@ def tournamentSelect(tournamentSize, strategySet):
     tourneyEntrants = random.sample(strategySet, k=tournamentSize)
     parent = max(tourneyEntrants, key = lambda strat: strat.fitness)
     return parent
-
-# [ifTerminate strategies] determines whether the GA algorithm should terminate
-# by checking whether the best strategy has been leading for 20 generations
-def ifTerminate(strategies):
-    bestStrat = max(strategies, key = lambda strat: strat.fitness)
-    return bestStrat.numGenerations >= 20
 
 # [incrGeneration strat] increments the generation of strategy and returns it
 def incrGeneration(strategy):
@@ -57,16 +51,18 @@ def main():
         gen = GEN_START
         runFirst = False
     print('got first set of strats')
+    bestStrat = None
+    bestStratStreak = 0
     # main while loop each loop is a generation, and runs until it reaches a terminating state
-    while not ifTerminate(strategies):
-    # while gen <= 1:
+    while bestStratStreak < 20:
+    # while gen < 1:
         # conditional for every hour of running the program, sleep for 15 minutes to avoid pushing
         # the computer too much
-        if time.time() - mainStartTime >= 3600.0:
-            print('sleeping')
-            time.sleep(900)
-            mainStartTime = time.time()
-            print('done sleeping')
+        # if time.time() - mainStartTime >= 3600.0:
+        #     print('sleeping')
+        #     time.sleep(900)
+        #     mainStartTime = time.time()
+        #     print('done sleeping')
 
         # runs the set of strategies through blackjack games to find their fitness scores
         # uses multiprocessing to run through blackjack games faster
@@ -74,13 +70,17 @@ def main():
         # increments numGenerations for the best strategy
         if runFirst:
             startTime = time.time()
-            pool = multiprocessing.Pool(processes = NUM_STRATEGIES)
+            pool = multiprocessing.Pool(processes = 60)
             strategies = pool.map(runSeries, strategies)
             best = max(strategies, key = lambda strat: strat.fitness)
             genToJSON(gen, strategies, best)
             print(str(gen)+'|Time ran ' + str(time.time() - startTime))
             best = max(strategies, key = lambda strat: strat.fitness)
-            strategies = [incrGeneration(strat) if strat.fitness == best.fitness else strat for strat in strategies]
+            if best == bestStrat: 
+                bestStratStreak += 1
+            else: 
+                bestStratStreak = 0
+                bestStrat = best
             print('best Strategy of gen ' + str(gen) + '\n' + str(best))
         runFirst = True
 
@@ -94,14 +94,16 @@ def main():
         
         ## Crossover
         # Iterates through 2 parents to make a new child strategy
-        children = set()
+        children = []
         for i in range(0, len(parents), 2):
-            children.add(crossOver(parents[i], parents[i+1], worstStrategy.fitness))
+            # print(parents[i])
+            # print(parents[i+1])
+            children.append(crossOver(parents[i], parents[i+1]))
         
         ## Deletion
         # Replaces all of the worst strategies with children
         strategies.sort(key = lambda strat: strat.fitness)
-        strategies = [strat if children == set() else children.pop() for strat in strategies]
+        strategies = [strat if len(children) == 0 else children.pop() for strat in strategies]
 
         gen += 1
 
@@ -115,14 +117,11 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # bestStrat = bestStrategyFromGeneration(154)
+    # bestStrat = testStrategy()
     # randomStrat = randomStrat()
     # playSeries(randomStrat, NUM_GAMES_PER_STRATEGY)
     # playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
     # playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
     # print('random Strategy from my GA\n' + str(randomStrat) +'\n')
-    # # printClean(randomStrat)
     # print('best Strategy from my GA\n' + str(bestStrat) +'\n')
-    # # printClean(bestStrat)
     # print('optimal Strategy\n' + str(optStrat))
-    # printClean(optStrat)
