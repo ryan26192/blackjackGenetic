@@ -17,15 +17,8 @@ class Strategy:
         self.name = name
         self.numGenerations = numGenerations
 
-    def isPair(self, hand):
-        if len(hand) == 2 and hand[0] == hand[1]: 
-            return True
-        else:
-            return False
-        
-
     def getMove(self, playerHand, dealer, pairAllowed = True):
-        if self.isPair(playerHand) and pairAllowed:
+        if isPair(playerHand) and pairAllowed:
             return self.pair[playerHand[0]][dealer-2]
         if playerHand.count(11) == 1:
             # soft hand (ONLY IF THERE IS EXACTLY ONE 11)
@@ -179,3 +172,34 @@ def testStrategy():
     f = open('testStrategyGeneration.json')
     data = json.load(f)['best']
     return convertToStrategy(data)
+
+def printClean(s):
+    print("HARD:")
+    for i in range(5, 21):
+        print(str(i) + ": " + str(s.hard[i]))
+    print("SOFT:")    
+    for i in range(2, 10):
+        print(str(i) + ": " + str(s.soft[i]))
+    print("PAIR:")
+    for i in range(2, 12):
+        print(str(i) + ": " + str(s.pair[i]))
+
+def setStrat(strat):
+    #generate a strat with just hit
+    if strat == 'P':
+        randomHard = generateTableSet(5, 21, 'S')
+        randomSoft = generateTableSet(2, 10, 'S')
+    else:
+        randomHard = generateTableSet(5, 21, strat)
+        randomSoft = generateTableSet(2, 10, strat)
+    randomPair = generateTableSet(2, 12, strat)
+    return Strategy(randomHard, randomSoft, randomPair)
+
+def generateRowSet(strat):
+    return [strat for i in range(10)]
+
+def generateTableSet(start, end, strat):
+    table = {}
+    for i in range(start, end):
+        table[i] = generateRowSet( strat)
+    return table

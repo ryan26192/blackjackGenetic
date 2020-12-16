@@ -13,3 +13,9 @@ def total(hand):
         else:
             total += card
     return total
+
+def isPair(hand):
+        if len(hand) == 2 and hand[0] == hand[1]: 
+            return True
+        else:
+            return False

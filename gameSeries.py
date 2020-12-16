@@ -176,3 +176,79 @@ def playSeries(playerStrat, numGames):
         seriesNet += playGame(dealerHand, playerHand, playerStrat)
     playerStrat.setFitness(seriesNet)
     return seriesNet
+
+# ******************** basic optimizer gameSeries functions (kept separate to prevent messing up GA generation) ****************
+# returns the net gain (or loss) from a game
+def playGamePerf(dealerHand, playerHand, playerStrat, performance):
+    global deck
+    playerStop = False # true if player chooses to stay
+    multiplier = 1 # 2 if the player chooses to double down
+    #print("player's starting hand: " + str(playerHand))
+    #print("dealer's starting hand: " + str(dealerHand))
+
+    # counter var to print turns
+    i = 1
+
+    # while loop to play through game until player chooses to stop
+    cell = performance.getCell(playerHand, dealerHand[0])
+    playerFirstChoice = playerStrat.getMove(playerHand, dealerHand[0])
+    #print(str(playerFirstChoice))
+    while not playerStop:
+        net = multiplier*gameNet(dealerHand, playerHand, playerStop)
+        if net != 0: 
+            if cell != None:
+                cell[playerFirstChoice][0] += net
+                cell[playerFirstChoice][1] += 1
+                #print(cell)
+            return net
+        # get a choice from the playerStrat
+        playerChoice = playerStrat.getMove(playerHand, dealerHand[0])
+        # print("player's choice turn " + str(i) + ": " + str(playerChoice))
+        if playerChoice == 'H':
+            addCard(playerHand)
+        elif playerChoice == 'P':
+            # if player chooses to split we split the cards and play through with both
+            # print('split has happened')
+            playerHand1 = [playerHand[0]]
+            addCard(playerHand1)
+            playerHand2 = [playerHand[1]]
+            addCard(playerHand2)
+            return playGamePair(playerHand1, playerHand2, dealerHand, playerStrat)
+        elif playerChoice == 'D':
+            # double down bet
+            addCard(playerHand)
+            multiplier = 2
+            playerStop=True
+        elif playerChoice == 'S':
+            playerStop = True   
+        #print("player's hand turn " + str(i) + ": " + str(playerHand))
+        i += 1
+
+    # play through dealers hand if player hasn't lost yet
+    while total(dealerHand) < 17:
+        addCard(dealerHand)
+    net = multiplier*gameNet(dealerHand, playerHand, playerStop)
+    if cell != None:
+        cell[playerFirstChoice][0] += net
+        cell[playerFirstChoice][1] += 1
+    return net
+
+def playSeriesPerf(playerStrat, numGames, performance):
+    global deck
+    """plays a series of games and returns the net loss of those games using the input strategy
+
+    Args:
+        playerStrat: strategy object to use to simulate player
+        numGames: number of sequential games to play
+    """
+    seriesNet = 0
+    for _ in range(0, numGames):
+        #print('new game')
+        # shuffle and deal
+        shuffle()
+        dealerHand = deal()
+        playerHand = deal()
+        #play game
+        seriesNet += playGamePerf(dealerHand, playerHand, playerStrat, performance)
+    playerStrat.setFitness(seriesNet)
+    return seriesNet
