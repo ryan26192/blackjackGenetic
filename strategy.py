@@ -174,7 +174,10 @@ def bestStrategyFromGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
     data = json.load(f)['best']
     return convertToStrategy(data)
-
+def streakFromGeneration(gen):
+    f = open('generation/gen'+str(gen)+'.json')
+    data = json.load(f)['bestStratStreak']
+    return int(data)
 def testStrategy():
     f = open('testStrategyGeneration.json')
     data = json.load(f)['best']

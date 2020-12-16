@@ -1,5 +1,5 @@
 # Main executable blackjack game
-from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, testStrategy
+from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, testStrategy,streakFromGeneration,bestStrategyFromGeneration
 from gameSeries import playSeries
 import multiprocessing
 import random
@@ -9,8 +9,8 @@ import json
 NUM_STRATEGIES = 400 #Number of strategies each gen to run the genetic algorithm
 NUM_GAMES_PER_STRATEGY = 100000 # Number of games each strategy plays through to get fitness score
 TOURNAMENT_SIZE = 2 # Tournament Size for Tournament Select
-GEN_START = 16 # If GEN_START = 0, starts GA from scratch, or you can start from a specific saved generation
-
+GEN_START = 283 # If GEN_START = 0, starts GA from scratch, or you can start from a specific saved generation
+bestStratStreakInit = 1
 
 #[tournamentSelect tournamentSize strategySet] returns the winner of a tournament through
 #tournament selection
@@ -31,9 +31,9 @@ def runSeries(strategy):
     return strategy
 
 # converts a generation to a JSON and writes it to a file
-def genToJSON(gen, strategies, best):
+def genToJSON(gen, strategies, best,streak):
     objectSchema = ObjectSchema()
-    data = {'best' : objectSchema.dump(best), 'strategies' : objectSchema.dump(strategies, many=True)}
+    data = {'bestStratStreak': streak, 'best' : objectSchema.dump(best), 'strategies' : objectSchema.dump(strategies, many=True)}
     with open('generations/gen' + str(gen)+'.json', 'w') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
     return
@@ -46,13 +46,15 @@ def main():
         strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
         gen = 0
         runFirst = True
+        bestStratStreak = 0
+        bestStrat = None
     else: 
         strategies = getStrategiesFromGeneration(GEN_START)
         gen = GEN_START
         runFirst = False
+        bestStrat = bestStrategyFromGeneration(GEN_START)
+        bestStratStreak = bestStratStreakInit if GEN_START <= 283 else streakFromGeneration(283)
     print('got first set of strats')
-    bestStrat = None
-    bestStratStreak = 0
     # main while loop each loop is a generation, and runs until it reaches a terminating state
     while bestStratStreak < 20:
     # while gen < 1:
@@ -73,14 +75,14 @@ def main():
             pool = multiprocessing.Pool(processes = 60)
             strategies = pool.map(runSeries, strategies)
             best = max(strategies, key = lambda strat: strat.fitness)
-            genToJSON(gen, strategies, best)
-            print(str(gen)+'|Time ran ' + str(time.time() - startTime))
-            best = max(strategies, key = lambda strat: strat.fitness)
             if best == bestStrat: 
                 bestStratStreak += 1
             else: 
                 bestStratStreak = 0
                 bestStrat = best
+            genToJSON(gen, strategies, best, bestStratStreak)
+            print(str(gen)+'|Time ran ' + str(time.time() - startTime))
+            print('best strategy streak: ' + str(bestStratStreak))
             print('best Strategy of gen ' + str(gen) + '\n' + str(best))
         runFirst = True
 
@@ -116,12 +118,12 @@ def main():
     print('optimal Strategy\n' + str(optStrat))
 
 if __name__ == '__main__':
-    main()
-    # bestStrat = testStrategy()
+    # main()
+    bestStrat = bestStrategyFromGeneration(310)
     # randomStrat = randomStrat()
     # playSeries(randomStrat, NUM_GAMES_PER_STRATEGY)
-    # playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
-    # playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
+    playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
+    playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
     # print('random Strategy from my GA\n' + str(randomStrat) +'\n')
-    # print('best Strategy from my GA\n' + str(bestStrat) +'\n')
-    # print('optimal Strategy\n' + str(optStrat))
+    print('best Strategy from my GA\n' + str(bestStrat) +'\n')
+    print('optimal Strategy\n' + str(optStrat))
