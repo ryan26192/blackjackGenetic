@@ -3,34 +3,41 @@ from gameSeries import playSeries
 import copy
 
 numGames = 100000
-maxIter = 20000
+maxIter = 20
 
 def search():
     print("starting local search")
     strat = randomStrat() # current strategy
     perf = playSeries(strat, numGames) # performance of current strategy
     iteration = 0
-    # noNeighbor = True # true if we never find a better neighbor
-    while True:
-        iteration += 1 
-        if(iteration > maxIter):
-            return strat
-        print("local search [Pair] - iteration:" + str(iteration))
-        # Iterate through all neighbor strategies
-        # A) Check hard table
-        if(test_hard(strat, perf)):
-            continue
 
-        # B) Check soft table
-        if(test_soft(strat, perf)):
-            continue
+    # A) local-search hard table
+    while(test_hard(strat, perf)):
+        perf = playSeries(strat, numGames)
+        print("local search [Hard] - iteration:" + str(iteration) + "; perf: " + str(perf))
+        iteration += 1
+        if iteration > maxIter:
+            break
+    
+    iteration = 0
+    # B) local-search soft table
+    while(test_soft(strat, perf)):
+        perf = playSeries(strat, numGames)
+        print("local search [Soft] - iteration:" + str(iteration) + "; perf: " + str(perf))
+        iteration += 1
+        if iteration > maxIter:
+            break
 
-        # C) Check pair table
-        if(test_pair(strat, perf)):
-            continue
+    iteration = 0
+    # C) local-search pair table
+    while(test_pair(strat, perf)):
+        perf = playSeries(strat, numGames)
+        print("local search [Pair] - iteration:" + str(iteration) + "; perf: " + str(perf))
+        iteration += 1
+        if iteration > maxIter:
+            break
         
-        # if we reach this line, that means no improvements were found in any neighbors and we are done
-        return strat
+    return strat
 
 # Tests hard table cells for improvements
 # Returns true if strat has been updated with improvement
