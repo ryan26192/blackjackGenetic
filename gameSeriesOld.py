@@ -1,7 +1,7 @@
 # Game object
 import os
 import random
-from common import *
+from common import total
 
 # GameSeries object takes in a player strategy and a number of games in the series, N, 
 # then runs that strategy against N randomly generated games

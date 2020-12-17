@@ -1,7 +1,6 @@
 # Main executable blackjack game
 from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, testStrategy,streakFromGeneration,bestStrategyFromGeneration
-from gameSeries import playSeries
-from gameSeries2 import calculateFitnessScore
+from gameSeries2 import playSeries
 from common import percentDifference
 import multiprocessing
 import random
@@ -9,7 +8,7 @@ import time
 import json
 
 NUM_STRATEGIES = 400 #Number of strategies each gen to run the genetic algorithm
-NUM_GAMES_PER_STRATEGY = 500000 # Number of games each strategy plays through to get fitness score
+NUM_GAMES_PER_STRATEGY = 100000 # Number of games each strategy plays through to get fitness score
 TOURNAMENT_SIZE = 2 # Tournament Size for Tournament Select
 GEN_START = 283 # If GEN_START = 0, starts GA from scratch, or you can start from a specific saved generation
 bestStratStreakInit = 1
@@ -122,10 +121,10 @@ if __name__ == '__main__':
     bestStrat = bestStrategyFromGeneration(300)
     # randomStrat = randomStrat()
     # playSeries(randomStrat, NUM_GAMES_PER_STRATEGY)
-    calculateFitnessScore(bestStrat, NUM_GAMES_PER_STRATEGY)
-    calculateFitnessScore(optStrat, NUM_GAMES_PER_STRATEGY)
-    # playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
-    # playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
+    # calculateFitnessScore(bestStrat, NUM_GAMES_PER_STRATEGY)
+    # calculateFitnessScore(optStrat, NUM_GAMES_PER_STRATEGY)
+    playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
+    playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
     # print('random Strategy from my GA\n' + str(randomStrat) +'\n')
     print('best Strategy from my GA\n' + str(bestStrat) +'\n')
     print('optimal Strategy\n' + str(optStrat))

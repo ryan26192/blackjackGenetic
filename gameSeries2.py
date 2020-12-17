@@ -2,13 +2,14 @@ import random
 from common import total
 from deck import Deck
 
-# def replaceCard(hand, deck):
-#     card = deck.pop()
-#     card = 10 if card == 12 or card == 13 or card == 13 else card
-#     hand[1] = card
+def dealCards(playerHand, dealerHand, deck):
+    dealerHand.append(deck.dealCard())
+    dealerHand.append(deck.dealCard())
+    playerHand.append(deck.dealCard())
+    playerHand.append(deck.dealCard())
 
-def calculateFitnessScore(playerStrat, numHandsToPlay):
-    playerChips = 0
+def playSeries(playerStrat, numHandsToPlay):
+    fitness = 0
     deck = Deck()
     bet = 5
     payoff = 1.5 * bet
@@ -18,11 +19,7 @@ def calculateFitnessScore(playerStrat, numHandsToPlay):
         dealerHand = []
         playerHand = []
         # deal hands
-        # addCard(dealerHand, deck)
-        dealerHand.append(deck.dealCard())
-        dealerHand.append(deck.dealCard())
-        playerHand.append(deck.dealCard())
-        playerHand.append(deck.dealCard())
+        dealCards(playerHand, dealerHand, deck)
         # add hand to playerHand
         playerHands = []
         playerHands.append(playerHand)
@@ -30,91 +27,91 @@ def calculateFitnessScore(playerStrat, numHandsToPlay):
         # tracking bets per hand
         betAmountperHand = []
         betAmountperHand.append(bet)
-        playerChips -= bet
+        fitness -= bet
 
         # checking for immediate blackjack
         if total(playerHand) == 21:
             if total(dealerHand) != 21:
-                playerChips += betAmountperHand[0]
+                fitness += betAmountperHand[0]
             else:
-                playerChips += payoff
+                fitness += payoff
             betAmountperHand[0] = 0
             continue
         
         # if dealer has blackjack go to next hand
         if total(dealerHand) == 21: continue
 
+        # play through all of hands
         for i in range(len(playerHands)):
             playerHand = playerHands[i]
             gameState = 0 # 0 -> playerTurn, 1 -> dealer, 2 -> playerbusted, 3 -> dealerBusted
             while(gameState == 0):
-
                 if total(playerHand) == 21:
                     if len(playerHand) == 2: # blackjack
                         blackjackPayoff = payoff * betAmountperHand[i] / bet
-                        playerChips += blackjackPayoff
+                        fitness += blackjackPayoff
                         betAmountperHand[i] = 0
                     gameState = 1
                     break
-
+                # player choice through strategy
                 choice = playerStrat.getMove(playerHand, dealerHand[0])
                 
                 # you can only double down with two cards
                 if choice == 'D' and len(playerHand) > 2: choice = 'H'
                 
                 if choice == 'H': # hit
-                    # addCard(playerHand, deck)
                     playerHand.append(deck.dealCard())
                     if total(playerHand) == 21:
+                        #player gets blackjack so it's dealer's turn
                         gameState = 1
                     elif total(playerHand) > 21:
+                        # player busted and loses bet, goes to playerBusted
                         betAmountperHand[i] = 0
                         gameState = 2
-                elif choice == 'S': # stay
-                    gameState = 1
+                elif choice == 'S': gameState = 1 # stay, so dealer's turn
                 elif choice == 'D': # double down
-                    playerChips -= bet
+                    fitness -= bet # bet's again
                     betAmountperHand[i] += bet
-
-                    # addCard(playerHand, deck)
-                    playerHand.append(deck.dealCard())
+                    playerHand.append(deck.dealCard()) # add new card
                     if total(playerHand) > 21: 
+                        # player busted
                         betAmountperHand[i] = 0
                         gameState = 2
-                    else: gameState = 1
+                    else: gameState = 1 # player didn't bust, dealer's turn
                 elif choice == 'P': # split
+                    # add a new hand to playerHands and bets again
                     newHand = []
                     newHand.append(playerHand[1])
                     playerHand[1] = deck.dealCard()
-                    # replaceCard(playerHand, deck)
                     playerHands.append(newHand)
-
-                    playerChips -= bet
+                    fitness -= bet
                     betAmountperHand.append(bet)
     
         playerHandsAvailable = sum(betAmountperHand) > 0
         if playerHandsAvailable:
-            gameState = 1
-
-            while total(dealerHand) < 17:
-                # addCard(dealerHand, deck)
+            # there is still player hands that didn't bust
+            gameState = 1 # we are now at the dealer's turn
+            while total(dealerHand) < 17: 
+                # dealer hit's until they hit 17
                 dealerHand.append(deck.dealCard())
                 if total(dealerHand) > 21:
+                    # dealer has busted so now player wins 2 * bet
                     for i in range(len(playerHands)):
-                        playerChips += betAmountperHand[i] * 2
-                    gameState = 3
+                        fitness += betAmountperHand[i] * 2
+                    gameState = 3 
                     break
             if gameState != 3:
+                # dealer stayed so now we check for ties or wins
                 dealerHandValue = total(dealerHand)
                 for i in range(len(playerHands)):
+                    # for each hand check for tie or win, loss was already counted
                     playerHandValue = total(playerHands[i])
-
                     if playerHandValue == dealerHandValue:
-                        playerChips += betAmountperHand[i]
+                        fitness += betAmountperHand[i]
                     elif playerHandValue > dealerHandValue:
-                        playerChips += betAmountperHand[i] * 2
-    playerStrat.setFitness(playerChips)
-    return playerChips
+                        fitness += betAmountperHand[i] * 2
+    playerStrat.setFitness(fitness)
+    return fitness
 
 
 

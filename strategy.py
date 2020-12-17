@@ -1,6 +1,6 @@
 ## Strategy file that holds a strategy class and
 ## initializes a the optimal strategy from beat the dealer
-from common import *
+from common import total
 import random
 import json
 from marshmallow import Schema, fields
@@ -34,19 +34,11 @@ class Strategy:
         if self.isPair(playerHand):
             return self.pair[playerHand[0]][dealer-2]
         if self.hasSoftAce(playerHand):
+            # ensures having a soft ace
             numAces = playerHand.count(11)
             nonAceSum = sum(x for x in playerHand if x != 11) + (numAces - 1)
             return self.soft[nonAceSum][dealer-2]
         return self.hard[total(playerHand)][dealer-2]
-        # if playerHand.count(11) == 1:
-        #     # soft hand (ONLY IF THERE IS EXACTLY ONE 11)
-        #     nonAceSum = sum(x for x in playerHand if x != 11)
-        #     if nonAceSum < 10:
-        #         return 'S' if nonAceSum == 10 else self.soft[nonAceSum][dealer-2]
-        # # hard hand (could have an ace, but the ace has been forced to 1)
-        # x = total(playerHand)
-        # if x < 5: return 'H' #only comes up because in case of 2,2 hand with pairAllowed = False
-        # return 'S' if x >= 21 else self.hard[x][dealer-2]
 
     def setFitness(self, fitness):
         self.fitness = fitness

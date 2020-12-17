@@ -1,5 +1,7 @@
 import random
 
+# new Deck class that never becomes empty, 
+# and resets whenever it gets low
 class Deck:
     currentCard = 0
     cards = []
