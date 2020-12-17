@@ -118,7 +118,7 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    bestStrat = bestStrategyFromGeneration(300)
+    bestStrat = testStrategy()
     # randomStrat = randomStrat()
     # playSeries(randomStrat, NUM_GAMES_PER_STRATEGY)
     # calculateFitnessScore(bestStrat, NUM_GAMES_PER_STRATEGY)
