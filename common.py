@@ -2,14 +2,24 @@
 
 ## calculates total of a hand
 def total(hand):
-    total = 0
-    hand.sort()
+    highValue, lowValue = 0, 0
+    ifAceWasUsedHigh = False # only one ace can be used as high
     for card in hand:
         if card == 11:
-            if total >= 11:
-                total += 1
+            if not ifAceWasUsedHigh:
+                highValue += 11
+                lowValue += 1
+                ifAceWasUsedHigh = True
             else:
-                total += 11
+                highValue += 1
+                lowValue += 1
         else:
-            total += card
-    return total
+            highValue += card
+            lowValue += card
+    if lowValue > 21: return lowValue
+    if highValue > 21: return lowValue
+    return highValue
+
+def percentDifference(x, y):
+    return (abs(x - y)/((abs(x) + abs(y))/2)) * 100
+    

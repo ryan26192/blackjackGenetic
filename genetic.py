@@ -1,13 +1,15 @@
 # Main executable blackjack game
 from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, testStrategy,streakFromGeneration,bestStrategyFromGeneration
 from gameSeries import playSeries
+from gameSeries2 import calculateFitnessScore
+from common import percentDifference
 import multiprocessing
 import random
 import time
 import json
 
 NUM_STRATEGIES = 400 #Number of strategies each gen to run the genetic algorithm
-NUM_GAMES_PER_STRATEGY = 100000 # Number of games each strategy plays through to get fitness score
+NUM_GAMES_PER_STRATEGY = 500000 # Number of games each strategy plays through to get fitness score
 TOURNAMENT_SIZE = 2 # Tournament Size for Tournament Select
 GEN_START = 283 # If GEN_START = 0, starts GA from scratch, or you can start from a specific saved generation
 bestStratStreakInit = 1
@@ -40,7 +42,6 @@ def genToJSON(gen, strategies, best,streak):
 
 # main executable for GA algorithm
 def main():
-    mainStartTime = time.time() #starts up a timer for the algorithm
     #checks if we are starting from a saved generation or a new beginning
     if GEN_START == 0:
         strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
@@ -88,7 +89,6 @@ def main():
 
         ## Tournament Selection
         # Runs tournament selection to find a set of suitable parents
-        worstStrategy = min(strategies, key = lambda strat: strat.fitness)
         parents = []
         numParents = int(NUM_STRATEGIES/2 if (NUM_STRATEGIES/2) % 2 == 0 else (NUM_STRATEGIES - 1)/2)
         for i in range(numParents):
@@ -119,11 +119,15 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    bestStrat = bestStrategyFromGeneration(310)
+    bestStrat = bestStrategyFromGeneration(300)
     # randomStrat = randomStrat()
     # playSeries(randomStrat, NUM_GAMES_PER_STRATEGY)
-    playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
-    playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
+    calculateFitnessScore(bestStrat, NUM_GAMES_PER_STRATEGY)
+    calculateFitnessScore(optStrat, NUM_GAMES_PER_STRATEGY)
+    # playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
+    # playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
     # print('random Strategy from my GA\n' + str(randomStrat) +'\n')
     print('best Strategy from my GA\n' + str(bestStrat) +'\n')
     print('optimal Strategy\n' + str(optStrat))
+    # print('percent difference: ' + str(percentDifference(bestStrat.fitness, optStrat.fitness)))
+    print('optStrat wins' if max(bestStrat.fitness, optStrat.fitness) == optStrat.fitness else 'GA strat wins')
