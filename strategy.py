@@ -1,6 +1,6 @@
 ## Strategy file that holds a strategy class and
 ## initializes a the optimal strategy from beat the dealer
-from common import *
+from common import total
 import random
 import json
 from marshmallow import Schema, fields
@@ -18,24 +18,27 @@ class Strategy:
         self.numGenerations = numGenerations
 
     def isPair(self, hand):
-        if len(hand) == 2 and hand[0] == hand[1]: 
-            return True
-        else:
-            return False
+        if len(hand) > 2: return False
+        return hand[0] == hand[1]
         
+    def hasSoftAce(self, hand):
+        numAces = hand.count(11)
+        if numAces == 0: return False
+
+        total = 11 + sum(x for x in hand if x != 11) + (numAces - 1)
+        return total <= 21
 
     def getMove(self, playerHand, dealer, pairAllowed = True):
-        if self.isPair(playerHand) and pairAllowed:
+        if total(playerHand) >= 21: return 'S'
+
+        if self.isPair(playerHand):
             return self.pair[playerHand[0]][dealer-2]
-        if playerHand.count(11) == 1:
-            # soft hand (ONLY IF THERE IS EXACTLY ONE 11)
-            nonAceSum = sum(x for x in playerHand if x != 11)
-            if nonAceSum < 10:
-                return 'S' if nonAceSum == 10 else self.soft[nonAceSum][dealer-2]
-        # hard hand (could have an ace, but the ace has been forced to 1)
-        x = total(playerHand)
-        if x < 5: return 'H' #only comes up because in case of 2,2 hand with pairAllowed = False
-        return 'S' if x >= 21 else self.hard[x][dealer-2]
+        if self.hasSoftAce(playerHand):
+            # ensures having a soft ace
+            numAces = playerHand.count(11)
+            nonAceSum = sum(x for x in playerHand if x != 11) + (numAces - 1)
+            return self.soft[nonAceSum][dealer-2]
+        return self.hard[total(playerHand)][dealer-2]
 
     def setFitness(self, fitness):
         self.fitness = fitness
@@ -170,11 +173,18 @@ def getStrategiesFromGeneration(gen):
     data = json.load(f)['strategies']
     return [convertToStrategy(jsonStrat) for jsonStrat in data]
 
-def bestStrategyFromGeneration(gen):
+def bestStrategyFromNormalGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
     data = json.load(f)['best']
     return convertToStrategy(data)
-
+def bestStrategyFromLowParamGeneration():
+    f = open('generations100-10000/gen'+str(664)+'.json',)
+    data = json.load(f)['best']
+    return convertToStrategy(data)
+def streakFromGeneration(gen):
+    f = open('generations/gen'+str(gen)+'.json')
+    data = json.load(f)['bestStratStreak']
+    return int(data)
 def testStrategy():
     f = open('testStrategyGeneration.json')
     data = json.load(f)['best']

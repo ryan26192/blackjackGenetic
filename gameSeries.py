@@ -1,178 +1,119 @@
-# Game object
-import os
 import random
-from common import *
+from common import total
+from deck import Deck
 
-# GameSeries object takes in a player strategy and a number of games in the series, N, 
-# then runs that strategy against N randomly generated games
+def dealCards(playerHand, dealerHand, deck):
+    dealerHand.append(deck.dealCard())
+    dealerHand.append(deck.dealCard())
+    playerHand.append(deck.dealCard())
+    playerHand.append(deck.dealCard())
 
-deck = [] # deck var
-win = 5 # base amount a player gains from winning, bet is 2 dollars
-loss = -7.50 # base amount a player loses from losing, bet is 2 dollars
-# [gameNet dealerHand playerHand] gameNet returns the net loss/gain of the game by
-# checking game end scenarios 
-# returns 0 if the game is not ended, returns win if player won, returns loss if
-# dealer won 
-def gameNet(dealerHand, playerHand, playerStop):
-    playerTotal = total(playerHand)
-    dealerTotal = total(dealerHand)
-    if playerTotal > 21:
-        #print("player lost")
-        return loss # player busts
-    elif dealerTotal > 21:
-        #print("player won")
-        return win # dealer busts
-    elif playerStop:
-        if playerTotal > dealerTotal:
-            #print("player won")
-            return win
-        else:
-            #print("player lost")
-            return loss
-    return 0
+def playSeries(playerStrat, numHandsToPlay):
+    fitness = 0
+    deck = Deck()
+    bet = 5
+    payoff = 1.5 * bet
 
-# [addCard hand] adds a card to hand by popping a card off the shuffled deck
-def addCard(hand):
-    global deck
-    card = deck.pop()
-    card = 10 if card == 12 or card == 13 or card == 14 else card
-    hand.append(card)
+    for i in range(numHandsToPlay):
+        # init hands 
+        dealerHand = []
+        playerHand = []
+        # deal hands
+        dealCards(playerHand, dealerHand, deck)
+        # add hand to playerHand
+        playerHands = []
+        playerHands.append(playerHand)
 
-# [deal] returns a dealt deck with two random cards
-# NOTE: resets deck and hand, then shuffles cards 
-def deal():
-    hand = []
-    for _ in range(2):
-        addCard(hand)
-    return hand      
+        # tracking bets per hand
+        betAmountperHand = []
+        betAmountperHand.append(bet)
+        fitness -= bet
 
-# [shuffle] resets & shuffles deck hand
-def shuffle():
-    global deck
-    deck = [i for i in range(2, 15)] * 4
-    random.shuffle(deck)
+        # checking for immediate blackjack
+        if total(playerHand) == 21:
+            if total(dealerHand) != 21:
+                fitness += betAmountperHand[0]
+            else:
+                fitness += payoff
+            betAmountperHand[0] = 0
+            continue
+        
+        # if dealer has blackjack go to next hand
+        if total(dealerHand) == 21: continue
 
-def playGamePair(playerHand1, playerHand2, dealerHand, playerStrat):
-    global deck
-    playerStop1, playerStop2 = False, False
-    playerBust1, playerBust2 = False, False # True means that the player busted for that hand
-    multiplier1, multiplier2 = 1, 1
-    pairNet = 0
-    #print('playerHand1: ' + str(playerHand1))
-    #print('playerHand2: ' + str(playerHand2))
-    i = 1
-    while not playerStop1:
-        net = multiplier1*gameNet(dealerHand, playerHand1, playerStop1)
-        if net != 0: 
-            playerBust1 = True
-            pairNet += net
-            break
-        # get a choice from the playerStrat (pairAllowed = False)
-        playerChoice = playerStrat.getMove(playerHand1, dealerHand[0], False)
-        if playerChoice == 'H':
-            addCard(playerHand1)
-        elif playerChoice == 'D':
-            addCard(playerHand1)
-            multiplier1 = 2
-            playerStop1=True
-        elif playerChoice == 'S':
-            playerStop1 = True
-        #print("player 1's hand turn " + str(i) + ": " + str(playerHand1))
-        i += 1
-    i=0
-    while not playerStop2:
-        net = multiplier2*gameNet(dealerHand, playerHand2, playerStop2)
-        if net != 0: 
-            playerBust2 = True
-            pairNet += net
-            break
-        # get a choice from the playerStrat (pairAllowed = False)
-        playerChoice = playerStrat.getMove(playerHand2, dealerHand[0], False)
-        if playerChoice == 'H':
-            addCard(playerHand2)
-        elif playerChoice == 'D':
-            addCard(playerHand2)
-            multiplier2 = 2
-            playerStop2=True
-        elif playerChoice == 'S':
-            playerStop2 = True
-        #print("player 2's hand turn " + str(i) + ": " + str(playerHand2))
-        i += 1
+        # play through all of hands
+        for i in range(len(playerHands)):
+            playerHand = playerHands[i]
+            gameState = 0 # 0 -> playerTurn, 1 -> dealer, 2 -> playerbusted, 3 -> dealerBusted
+            while(gameState == 0):
+                if total(playerHand) == 21:
+                    if len(playerHand) == 2: # blackjack
+                        blackjackPayoff = payoff * betAmountperHand[i] / bet
+                        fitness += blackjackPayoff
+                        betAmountperHand[i] = 0
+                    gameState = 1
+                    break
+                # player choice through strategy
+                choice = playerStrat.getMove(playerHand, dealerHand[0])
+                
+                # you can only double down with two cards
+                if choice == 'D' and len(playerHand) > 2: choice = 'H'
+                
+                if choice == 'H': # hit
+                    playerHand.append(deck.dealCard())
+                    if total(playerHand) == 21:
+                        #player gets blackjack so it's dealer's turn
+                        gameState = 1
+                    elif total(playerHand) > 21:
+                        # player busted and loses bet, goes to playerBusted
+                        betAmountperHand[i] = 0
+                        gameState = 2
+                elif choice == 'S': gameState = 1 # stay, so dealer's turn
+                elif choice == 'D': # double down
+                    fitness -= bet # bet's again
+                    betAmountperHand[i] += bet
+                    playerHand.append(deck.dealCard()) # add new card
+                    if total(playerHand) > 21: 
+                        # player busted
+                        betAmountperHand[i] = 0
+                        gameState = 2
+                    else: gameState = 1 # player didn't bust, dealer's turn
+                elif choice == 'P': # split
+                    # add a new hand to playerHands and bets again
+                    newHand = []
+                    newHand.append(playerHand[1])
+                    playerHand[1] = deck.dealCard()
+                    playerHands.append(newHand)
+                    fitness -= bet
+                    betAmountperHand.append(bet)
     
-    # if both player hands have busted, return
-    if playerBust1 and playerBust2:
-        return pairNet
-    # play through dealers hand if player hasn't lost both hands
-    while total(dealerHand) < 17:
-        addCard(dealerHand)
-    # give reward based on which player's hands have not yet busted
-    if not playerBust1:
-        pairNet += multiplier1*gameNet(dealerHand, playerHand1, playerStop1)
-    if not playerBust2:
-        pairNet += multiplier2*gameNet(dealerHand, playerHand2, playerStop2)
-    return net
+        playerHandsAvailable = sum(betAmountperHand) > 0
+        if playerHandsAvailable:
+            # there is still player hands that didn't bust
+            gameState = 1 # we are now at the dealer's turn
+            while total(dealerHand) < 17: 
+                # dealer hit's until they hit 17
+                dealerHand.append(deck.dealCard())
+                if total(dealerHand) > 21:
+                    # dealer has busted so now player wins 2 * bet
+                    for i in range(len(playerHands)):
+                        fitness += betAmountperHand[i] * 2
+                    gameState = 3 
+                    break
+            if gameState != 3:
+                # dealer stayed so now we check for ties or wins
+                dealerHandValue = total(dealerHand)
+                for i in range(len(playerHands)):
+                    # for each hand check for tie or win, loss was already counted
+                    playerHandValue = total(playerHands[i])
+                    if playerHandValue == dealerHandValue:
+                        fitness += betAmountperHand[i]
+                    elif playerHandValue > dealerHandValue:
+                        fitness += betAmountperHand[i] * 2
+    playerStrat.setFitness(fitness)
+    return fitness
 
 
-# returns the net gain (or loss) from a game
-def playGame(dealerHand, playerHand, playerStrat):
-    global deck
-    playerStop = False # true if player chooses to stay
-    multiplier = 1 # 2 if the player chooses to double down
-    #print("player's starting hand: " + str(playerHand))
-    #print("dealer's starting hand: " + str(dealerHand))
 
-    # counter var to print turns
-    i = 1
+                
 
-    # while loop to play through game until player chooses to stop
-    while not playerStop:
-        net = multiplier*gameNet(dealerHand, playerHand, playerStop)
-        if net != 0: return net
-        # get a choice from the playerStrat
-        playerChoice = playerStrat.getMove(playerHand, dealerHand[0])
-        # print("player's choice turn " + str(i) + ": " + str(playerChoice))
-        if playerChoice == 'H':
-            addCard(playerHand)
-        elif playerChoice == 'P':
-            # if player chooses to split we split the cards and play through with both
-            # print('split has happened')
-            playerHand1 = [playerHand[0]]
-            addCard(playerHand1)
-            playerHand2 = [playerHand[1]]
-            addCard(playerHand2)
-            return playGamePair(playerHand1, playerHand2, dealerHand, playerStrat)
-        elif playerChoice == 'D':
-            # double down bet
-            addCard(playerHand)
-            multiplier = 2
-            playerStop=True
-        elif playerChoice == 'S':
-            playerStop = True   
-        #print("player's hand turn " + str(i) + ": " + str(playerHand))
-        i += 1
-
-    # play through dealers hand if player hasn't lost yet
-    while total(dealerHand) < 17:
-        addCard(dealerHand)
-    net = multiplier*gameNet(dealerHand, playerHand, playerStop)
-    return net
-
-def playSeries(playerStrat, numGames):
-    global deck
-    """plays a series of games and returns the net loss of those games using the input strategy
-
-    Args:
-        playerStrat: strategy object to use to simulate player
-        numGames: number of sequential games to play
-    """
-    seriesNet = 0
-    for _ in range(0, numGames):
-        #print('new game')
-        # shuffle and deal
-        shuffle()
-        dealerHand = deal()
-        playerHand = deal()
-        #play game
-        seriesNet += playGame(dealerHand, playerHand, playerStrat)
-    playerStrat.setFitness(seriesNet)
-    return seriesNet

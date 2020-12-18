@@ -1,6 +1,7 @@
 # Main executable blackjack game
-from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, testStrategy
+from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, streakFromGeneration, bestStrategyFromNormalGeneration
 from gameSeries import playSeries
+from common import percentDifference
 import multiprocessing
 import random
 import time
@@ -9,8 +10,8 @@ import json
 NUM_STRATEGIES = 400 #Number of strategies each gen to run the genetic algorithm
 NUM_GAMES_PER_STRATEGY = 100000 # Number of games each strategy plays through to get fitness score
 TOURNAMENT_SIZE = 2 # Tournament Size for Tournament Select
-GEN_START = 16 # If GEN_START = 0, starts GA from scratch, or you can start from a specific saved generation
-
+GEN_START = 0 # If GEN_START = 0, starts GA from scratch, or you can start from a specific saved generation
+bestStratStreakInit = 0
 
 #[tournamentSelect tournamentSize strategySet] returns the winner of a tournament through
 #tournament selection
@@ -31,28 +32,29 @@ def runSeries(strategy):
     return strategy
 
 # converts a generation to a JSON and writes it to a file
-def genToJSON(gen, strategies, best):
+def genToJSON(gen, strategies, best,streak):
     objectSchema = ObjectSchema()
-    data = {'best' : objectSchema.dump(best), 'strategies' : objectSchema.dump(strategies, many=True)}
+    data = {'bestStratStreak': streak, 'best' : objectSchema.dump(best), 'strategies' : objectSchema.dump(strategies, many=True)}
     with open('generations/gen' + str(gen)+'.json', 'w') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
     return
 
 # main executable for GA algorithm
 def main():
-    mainStartTime = time.time() #starts up a timer for the algorithm
     #checks if we are starting from a saved generation or a new beginning
     if GEN_START == 0:
         strategies = [randomStrat() for i in range(NUM_STRATEGIES)]
         gen = 0
         runFirst = True
+        bestStratStreak = 0
+        bestStrat = None
     else: 
         strategies = getStrategiesFromGeneration(GEN_START)
         gen = GEN_START
         runFirst = False
+        bestStrat = bestStrategyFromNormalGeneration(GEN_START)
+        bestStratStreak = streakFromGeneration(GEN_START)
     print('got first set of strats')
-    bestStrat = None
-    bestStratStreak = 0
     # main while loop each loop is a generation, and runs until it reaches a terminating state
     while bestStratStreak < 20:
     # while gen < 1:
@@ -73,20 +75,19 @@ def main():
             pool = multiprocessing.Pool(processes = 60)
             strategies = pool.map(runSeries, strategies)
             best = max(strategies, key = lambda strat: strat.fitness)
-            genToJSON(gen, strategies, best)
-            print(str(gen)+'|Time ran ' + str(time.time() - startTime))
-            best = max(strategies, key = lambda strat: strat.fitness)
             if best == bestStrat: 
                 bestStratStreak += 1
             else: 
                 bestStratStreak = 0
                 bestStrat = best
+            genToJSON(gen, strategies, best, bestStratStreak)
+            print(str(gen)+'|Time ran ' + str(time.time() - startTime))
+            print('best strategy streak: ' + str(bestStratStreak))
             print('best Strategy of gen ' + str(gen) + '\n' + str(best))
         runFirst = True
 
         ## Tournament Selection
         # Runs tournament selection to find a set of suitable parents
-        worstStrategy = min(strategies, key = lambda strat: strat.fitness)
         parents = []
         numParents = int(NUM_STRATEGIES/2 if (NUM_STRATEGIES/2) % 2 == 0 else (NUM_STRATEGIES - 1)/2)
         for i in range(numParents):
@@ -96,8 +97,6 @@ def main():
         # Iterates through 2 parents to make a new child strategy
         children = []
         for i in range(0, len(parents), 2):
-            # print(parents[i])
-            # print(parents[i+1])
             children.append(crossOver(parents[i], parents[i+1]))
         
         ## Deletion
@@ -117,11 +116,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # bestStrat = testStrategy()
-    # randomStrat = randomStrat()
-    # playSeries(randomStrat, NUM_GAMES_PER_STRATEGY)
-    # playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
-    # playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
-    # print('random Strategy from my GA\n' + str(randomStrat) +'\n')
-    # print('best Strategy from my GA\n' + str(bestStrat) +'\n')
-    # print('optimal Strategy\n' + str(optStrat))
