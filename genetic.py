@@ -1,6 +1,6 @@
 # Main executable blackjack game
 from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, testStrategy,streakFromGeneration,bestStrategyFromGeneration
-from gameSeries2 import playSeries
+from gameSeries import playSeries
 from common import percentDifference
 import multiprocessing
 import random
