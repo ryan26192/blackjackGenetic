@@ -173,8 +173,12 @@ def getStrategiesFromGeneration(gen):
     data = json.load(f)['strategies']
     return [convertToStrategy(jsonStrat) for jsonStrat in data]
 
-def bestStrategyFromGeneration(gen):
+def bestStrategyFromNormalGeneration(gen):
     f = open('generations/gen'+str(gen)+'.json',)
+    data = json.load(f)['best']
+    return convertToStrategy(data)
+def bestStrategyFromLowParamGeneration():
+    f = open('generations100-10000/gen'+str(664)+'.json',)
     data = json.load(f)['best']
     return convertToStrategy(data)
 def streakFromGeneration(gen):

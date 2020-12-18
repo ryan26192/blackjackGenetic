@@ -1,5 +1,5 @@
 # Main executable blackjack game
-from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, testStrategy,streakFromGeneration,bestStrategyFromGeneration
+from strategy import randomStrat, optStrat, crossOver, ObjectSchema, getStrategiesFromGeneration, streakFromGeneration, bestStrategyFromNormalGeneration
 from gameSeries import playSeries
 from common import percentDifference
 import multiprocessing
@@ -52,7 +52,7 @@ def main():
         strategies = getStrategiesFromGeneration(GEN_START)
         gen = GEN_START
         runFirst = False
-        bestStrat = bestStrategyFromGeneration(GEN_START)
+        bestStrat = bestStrategyFromNormalGeneration(GEN_START)
         bestStratStreak = streakFromGeneration(GEN_START)
     print('got first set of strats')
     # main while loop each loop is a generation, and runs until it reaches a terminating state
@@ -97,8 +97,6 @@ def main():
         # Iterates through 2 parents to make a new child strategy
         children = []
         for i in range(0, len(parents), 2):
-            # print(parents[i])
-            # print(parents[i+1])
             children.append(crossOver(parents[i], parents[i+1]))
         
         ## Deletion
@@ -117,14 +115,4 @@ def main():
     print('optimal Strategy\n' + str(optStrat))
 
 if __name__ == '__main__':
-    # main()
-#     bestStrat = bestStrategyFromGeneration(656)
-#     randomStrat = randomStrat()
-#     playSeries(randomStrat, NUM_GAMES_PER_STRATEGY)
-#     playSeries(bestStrat, NUM_GAMES_PER_STRATEGY)
-#     playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
-#     print('random Strategy from my GA\n' + str(randomStrat) +'\n')
-#     print('best Strategy from my GA\n' + str(bestStrat) +'\n')
-#     print('optimal Strategy\n' + str(optStrat))
-#     print('percent difference: ' + str(percentDifference(bestStrat.fitness, optStrat.fitness)))
-#     print('optStrat wins' if max(bestStrat.fitness, optStrat.fitness) == optStrat.fitness else 'GA strat wins')
+    main()
