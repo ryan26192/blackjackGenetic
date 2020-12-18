@@ -14,6 +14,7 @@ def analyze():
     playSeries(lowGA, NUM_GAMES_PER_STRATEGY)
     print('random Strategy from my GA\n' + str(random) +'\n')
     print('best Strategy from normal GA\n' + str(normalGA) +'\n')
+    print('best Strategy from low GA\n' + str(lowGA) +'\n')
     print('optimal Strategy\n' + str(optStrat))
     bestFitness = max(normalGA.fitness, optStrat.fitness, lowGA.fitness)
     if bestFitness == optStrat.fitness:
