@@ -7,7 +7,7 @@ import random
 import time
 import json
 
-NUM_STRATEGIES = 400 #Number of strategies each gen to run the genetic algorithm
+NUM_STRATEGIES = 100 #Number of strategies each gen to run the genetic algorithm
 NUM_GAMES_PER_STRATEGY = 100000 # Number of games each strategy plays through to get fitness score
 TOURNAMENT_SIZE = 2 # Tournament Size for Tournament Select
 GEN_START = 0 # If GEN_START = 0, starts GA from scratch, or you can start from a specific saved generation
@@ -35,7 +35,7 @@ def runSeries(strategy):
 def genToJSON(gen, strategies, best,streak):
     objectSchema = ObjectSchema()
     data = {'bestStratStreak': streak, 'best' : objectSchema.dump(best), 'strategies' : objectSchema.dump(strategies, many=True)}
-    with open('generations/gen' + str(gen)+'.json', 'w') as f:
+    with open('generations100-100000/gen' + str(gen)+'.json', 'w') as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
     return
 

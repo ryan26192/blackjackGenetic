@@ -12,7 +12,7 @@ def analyze():
     playSeries(normalGA, NUM_GAMES_PER_STRATEGY)
     playSeries(optStrat, NUM_GAMES_PER_STRATEGY)
     playSeries(lowGA, NUM_GAMES_PER_STRATEGY)
-    print('random Strategy from my GA\n' + str(random) +'\n')
+    print('random Strategy\n' + str(random) +'\n')
     print('best Strategy from normal GA\n' + str(normalGA) +'\n')
     print('best Strategy from low GA\n' + str(lowGA) +'\n')
     print('optimal Strategy\n' + str(optStrat))
